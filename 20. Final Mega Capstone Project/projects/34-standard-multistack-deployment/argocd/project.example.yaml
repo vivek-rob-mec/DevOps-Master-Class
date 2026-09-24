@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: standard-deployment
+  namespace: argocd
+spec:
+  sourceRepos:
+    - https://github.com/REPLACE_OWNER/REPLACE_REPO.git
+  destinations:
+    - namespace: standard-dev
+      server: https://kubernetes.default.svc
+    - namespace: standard-staging
+      server: https://kubernetes.default.svc
+    - namespace: standard-prod
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist: []
+  namespaceResourceWhitelist:
+    - {group: apps, kind: Deployment}
+    - {group: "", kind: Service}
+    - {group: "", kind: ServiceAccount}
+    - {group: "", kind: ConfigMap}
+    - {group: networking.k8s.io, kind: NetworkPolicy}
+    - {group: policy, kind: PodDisruptionBudget}

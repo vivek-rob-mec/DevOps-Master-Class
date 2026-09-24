@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1
+kind: DestinationRule
+metadata: { name: inventory, namespace: mesh-shop }
+spec:
+  host: inventory.mesh-shop.svc.cluster.local
+  trafficPolicy:
+    connectionPool: { http: { http1MaxPendingRequests: 50, maxRequestsPerConnection: 100 } }
+    outlierDetection: { consecutive5xxErrors: 5, interval: 5s, baseEjectionTime: 30s, maxEjectionPercent: 50 }
+---
+apiVersion: telemetry.istio.io/v1
+kind: Telemetry
+metadata: { name: mesh-default, namespace: mesh-shop }
+spec:
+  accessLogging: [{}]
+  metrics: [{ providers: [{ name: prometheus }] }]
+  tracing: [{ randomSamplingPercentage: 5.0 }]

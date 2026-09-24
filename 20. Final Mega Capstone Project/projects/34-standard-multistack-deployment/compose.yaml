@@ -1,0 +1,21 @@
+name: standard-deployment
+services:
+  app:
+    build:
+      context: ./apps/${STACK:-python}
+    image: standard-demo-${STACK:-python}:local
+    ports:
+      - "127.0.0.1:${HOST_PORT:-8180}:8080"
+    environment:
+      APP_ENV: ${APP_ENV:-local}
+      APP_VERSION: ${APP_VERSION:-dev}
+    user: "10001:10001"
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    pids_limit: 256
+    mem_limit: 512m
+    cpus: 1.0
+    stop_grace_period: 30s

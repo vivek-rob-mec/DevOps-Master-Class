@@ -1,0 +1,23 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: CompositeResourceDefinition
+metadata: { name: apps.platform.example.io }
+spec:
+  scope: Namespaced
+  group: platform.example.io
+  names: { kind: App, plural: apps }
+  defaultCompositionRef: { name: app-kubernetes }
+  versions:
+    - name: v1alpha1
+      served: true
+      referenceable: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [image]
+              properties:
+                image: { type: string, pattern: "^.+@sha256:[a-f0-9]{64}$" }
+                port: { type: integer, default: 8080, minimum: 1, maximum: 65535 }
+                replicas: { type: integer, default: 2, minimum: 1, maximum: 20 }

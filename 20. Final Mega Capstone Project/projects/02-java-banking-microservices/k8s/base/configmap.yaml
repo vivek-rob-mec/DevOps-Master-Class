@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: banking-config, namespace: banking-java }
+data:
+  APP_ENV: "kubernetes"
+  LOG_LEVEL: "info"
+  GATEWAY_URL: "http://banking-gateway"
+  ACCOUNTS_URL: "http://banking-accounts"
+  LEDGER_URL: "http://banking-ledger"
+  FRONTEND_URL: "http://banking-frontend"

@@ -1,0 +1,1 @@
+{"incident_id":"INC-2026-001","classification":"credential-misuse","opened_at":"2026-08-16T01:04:00Z","commander":"replace","affected_assets":["payments/checkout-1"],"evidence_hashes":{"events.jsonl":"replace"},"containment":["revoke workload identity","isolate namespace"],"customer_impact":"under investigation","closed_at":null}

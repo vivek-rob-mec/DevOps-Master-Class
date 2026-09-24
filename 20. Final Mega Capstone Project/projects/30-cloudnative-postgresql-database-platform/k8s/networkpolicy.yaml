@@ -1,0 +1,9 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: database-default-deny, namespace: database }
+spec: { podSelector: {}, policyTypes: [Ingress, Egress] }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: orders-pooler, namespace: database }
+spec: { minAvailable: 2, selector: { matchLabels: { cnpg.io/poolerName: orders-rw } } }

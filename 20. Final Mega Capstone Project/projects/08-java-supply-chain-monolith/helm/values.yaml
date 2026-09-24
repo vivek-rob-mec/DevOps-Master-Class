@@ -1,0 +1,12 @@
+image:
+  registry: ghcr.io
+  owner: replace-me
+  prefix: 08-java-supply-chain-monolith
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+existingSecret: ""
+config: { APP_ENV: production, LOG_LEVEL: info }
+workloads:
+  - { name: app, port: 8080, health: /health, replicas: 2 }
+ingress: { enabled: true, className: nginx, host: supplychain.example.com }
+autoscaling: { enabled: true, min: 2, max: 6, cpu: 70 }

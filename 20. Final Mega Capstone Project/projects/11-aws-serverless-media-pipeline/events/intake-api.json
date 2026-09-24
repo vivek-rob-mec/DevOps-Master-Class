@@ -1,0 +1,1 @@
+{"version":"2.0","routeKey":"POST /jobs","headers":{"content-type":"application/json","idempotency-key":"demo-job-001"},"requestContext":{"requestId":"local-request"},"body":"{\"bucket\":\"replace-media-dev\",\"key\":\"uploads/demo.png\"}"}

@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: telemetry, namespace: telemetry-cpp }
+spec:
+  groups:
+    - name: telemetry.availability
+      rules:
+        - alert: PublicEndpointDown
+          expr: up{namespace="telemetry-cpp",service="telemetry-app"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations: { summary: "telemetry entry workload is down", runbook_url: "docs/RUNBOOK.md" }

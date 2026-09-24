@@ -1,0 +1,8 @@
+services:
+  app:
+    build: { context: app, args: { REVISION: local } }
+    ports: ["${APP_PORT:-8105}:8080"]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]

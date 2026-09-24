@@ -1,0 +1,5 @@
+project_name = "media-pipeline"
+environment  = "dev"
+aws_region   = "us-east-1"
+log_retention_days = 30
+tags = { Owner = "replace-with-owner", CostCenter = "replace-with-cost-center", DataClass = "internal" }

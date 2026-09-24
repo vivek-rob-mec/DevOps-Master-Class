@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: logistics-django
+  labels:
+    app.kubernetes.io/part-of: logistics
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: logistics, namespace: logistics-django }
+automountServiceAccountToken: false

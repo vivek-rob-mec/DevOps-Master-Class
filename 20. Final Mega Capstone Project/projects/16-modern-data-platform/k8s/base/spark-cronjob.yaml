@@ -1,0 +1,30 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata: { name: daily-order-metrics, namespace: data-platform }
+spec:
+  schedule: "30 1 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata: { labels: { app.kubernetes.io/name: daily-order-metrics } }
+        spec:
+          automountServiceAccountToken: false
+          restartPolicy: Never
+          securityContext: { runAsNonRoot: true, runAsUser: 10001, fsGroup: 10001, seccompProfile: { type: RuntimeDefault } }
+          containers:
+            - name: spark
+              image: ghcr.io/replace-me/modern-data-platform-spark:replace-with-digest
+              imagePullPolicy: IfNotPresent
+              securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+              resources: { requests: { cpu: 500m, memory: 1Gi }, limits: { cpu: "2", memory: 4Gi } }
+              volumeMounts:
+                - { name: lake, mountPath: /opt/platform/data }
+                - { name: tmp, mountPath: /tmp }
+          volumes:
+            - { name: lake, persistentVolumeClaim: { claimName: data-lake } }
+            - { name: tmp, emptyDir: {} }

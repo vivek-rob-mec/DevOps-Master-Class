@@ -1,0 +1,18 @@
+body.aiops { --accent: #6955ad; --soft: #f1edfa; background: #f5f4f8; }
+.aiops .topbar { background: #302945; }
+.aiops .brand span { color: #d0c5f2; }
+.service-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-top: 12px; }
+.service-card { border: 1px solid var(--border); padding: 16px; border-radius: 9px; min-width: 0; }
+.service-card h3 { margin: 0 0 12px; overflow-wrap: anywhere; }
+.service-card .badge { white-space: normal; line-height: 1.5; }
+.service-card p { margin-bottom: 0; }
+.service-card .detail-line { gap: 6px; font-size: 10px; }
+.evidence-banner { background: var(--soft); border-left: 3px solid var(--accent); border-radius: 6px; padding: 17px; margin: 16px 0; }
+.evidence-banner p { margin-bottom: 0; }
+.hypothesis { border: 1px solid var(--border); border-radius: 7px; padding: 15px; margin: 10px 0; }
+.hypothesis h3 { margin: 0 0 8px; }
+.hypothesis p { margin: 0; }
+.filters select { width: 155px; }
+.source-context { font-size: 10px; min-width: 160px; }
+@media (max-width: 1120px) { .service-grid { grid-template-columns: 1fr; } }
+@media (max-width: 720px) { .filters select { width: 100%; } }

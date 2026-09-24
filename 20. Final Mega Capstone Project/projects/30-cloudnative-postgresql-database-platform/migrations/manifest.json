@@ -1,0 +1,5 @@
+[
+  {"sequence":1,"file":"001_init.sql","risk":"additive","backup_verified":false,"rollback":"drop orders after proving no consumers"},
+  {"sequence":2,"file":"002_outbox.sql","risk":"additive","backup_verified":false,"rollback":"drop outbox_events after publisher rollback"},
+  {"sequence":3,"file":"003_indexes.sql","risk":"additive","backup_verified":false,"rollback":"drop the two indexes concurrently"}
+]

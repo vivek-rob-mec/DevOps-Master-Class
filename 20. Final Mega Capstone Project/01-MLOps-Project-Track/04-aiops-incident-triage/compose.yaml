@@ -1,0 +1,38 @@
+name: mlops-aiops
+x-runtime: &runtime
+  image: mlops-aiops:local
+  build:
+    context: ..
+    dockerfile: 04-aiops-incident-triage/Dockerfile
+  user: "10001:10001"
+  read_only: true
+  tmpfs: ["/tmp:size=64m,mode=1777"]
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  mem_limit: 1g
+  cpus: 1.0
+  pids_limit: 128
+  volumes:
+    - state:/state
+    - telemetry:/telemetry
+services:
+  prepare:
+    <<: *runtime
+    command: ["python", "04-aiops-incident-triage/run.py", "demo"]
+    restart: "no"
+  api:
+    <<: *runtime
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+    ports: ["127.0.0.1:8214:8080"]
+    stop_grace_period: 30s
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/readyz',timeout=5)"]
+      interval: 10s
+      timeout: 6s
+      retries: 12
+volumes:
+  state:
+  telemetry:
+    name: mlops-track-telemetry

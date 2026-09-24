@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "26kQwtAce0Q=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\VivekSaroj\\Documents\\DevOps_Masterclass_Enhancement\\20. Final Mega Capstone Project\\projects\\13-dotnet-insurance-monolith\\tests\\DomainTests.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\VivekSaroj\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\10.0.0\\microsoft.extensions.dependencyinjection.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\VivekSaroj\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\10.0.0\\microsoft.extensions.logging.abstractions.10.0.0.nupkg.sha512",
+    "C:\\Users\\VivekSaroj\\.nuget\\packages\\npgsql\\10.0.3\\npgsql.10.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

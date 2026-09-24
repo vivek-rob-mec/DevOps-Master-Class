@@ -1,0 +1,31 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.18.2
+    volumes: [qdrant-data:/qdrant/storage]
+    ports: ["6333:6333"]
+    networks: [data]
+  mock-llm:
+    build: mock
+    read_only: true
+    tmpfs: [/tmp]
+    networks: [data]
+  gateway:
+    build: { context: ., dockerfile: gateway/Dockerfile }
+    environment: { QDRANT_URL: "${QDRANT_URL:-http://qdrant:6333}", LLM_BASE_URL: "${LLM_BASE_URL:-http://mock-llm:8000/v1}", LLM_MODEL: "${LLM_MODEL:-Qwen/Qwen3-0.6B}", MAX_CONTEXT_CHARS: "${MAX_CONTEXT_CHARS:-6000}" }
+    ports: ["${GATEWAY_PORT:-8107}:8080"]
+    depends_on: [qdrant, mock-llm]
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    networks: [edge,data]
+  vllm:
+    profiles: [gpu]
+    image: vllm/vllm-openai:v0.26.0
+    command: ["--model","${LLM_MODEL:-Qwen/Qwen3-0.6B}","--host","0.0.0.0","--port","8000","--max-model-len","4096"]
+    environment: { HF_TOKEN: "${HF_TOKEN:-}" }
+    ipc: host
+    deploy: { resources: { reservations: { devices: [{ driver: nvidia, count: 1, capabilities: [gpu] }] } } }
+    networks: [data]
+networks: { edge: {}, data: { internal: true } }
+volumes: { qdrant-data: {} }

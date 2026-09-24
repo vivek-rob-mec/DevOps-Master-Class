@@ -1,0 +1,10 @@
+FROM python:3.12-slim
+RUN groupadd -g 10001 platform && useradd -u 10001 -g platform --no-create-home platform
+WORKDIR /opt/platform
+RUN pip install --no-cache-dir confluent-kafka==2.11.1 jsonschema==4.25.1
+COPY --chown=platform:platform platform_lib/ platform_lib/
+COPY --chown=platform:platform producers/ producers/
+COPY --chown=platform:platform contracts/ contracts/
+COPY --chown=platform:platform data/raw/ data/raw/
+USER 10001:10001
+CMD ["python","producers/order_producer.py"]

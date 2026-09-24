@@ -1,0 +1,6 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: { name: booking, namespace: booking-node }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: booking } }
+  endpoints: [{ port: http, path: /metrics, interval: 30s, scrapeTimeout: 10s }]

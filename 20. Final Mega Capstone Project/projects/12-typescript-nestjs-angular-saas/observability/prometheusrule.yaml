@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: saas, namespace: saas-typescript }
+spec:
+  groups:
+    - name: saas.availability
+      rules:
+        - alert: PublicEndpointDown
+          expr: up{namespace="saas-typescript",service="saas-api"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations: { summary: "saas entry workload is down", runbook_url: "docs/RUNBOOK.md" }

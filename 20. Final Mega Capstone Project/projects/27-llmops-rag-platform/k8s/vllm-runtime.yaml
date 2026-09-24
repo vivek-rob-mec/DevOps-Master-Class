@@ -1,0 +1,23 @@
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata: { name: vllm-huggingface, namespace: llm-platform }
+spec:
+  supportedModelFormats: [{ name: huggingface, version: "1", autoSelect: true, priority: 1 }]
+  multiModel: false
+  containers:
+    - name: kserve-container
+      image: vllm/vllm-openai:v0.26.0
+      args: ["--model=/mnt/models", "--served-model-name={{.Name}}", "--host=0.0.0.0", "--port=8080", "--max-model-len=4096"]
+      ports: [{ name: http1, containerPort: 8080 }]
+      resources: { requests: { cpu: "2", memory: 8Gi, nvidia.com/gpu: "1" }, limits: { cpu: "8", memory: 24Gi, nvidia.com/gpu: "1" } }
+---
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata: { name: qwen, namespace: llm-platform, annotations: { serving.kserve.io/deploymentMode: Standard } }
+spec:
+  predictor:
+    model:
+      modelFormat: { name: huggingface }
+      runtime: vllm-huggingface
+      storageUri: hf://Qwen/Qwen3-0.6B
+      resources: { requests: { cpu: "2", memory: 8Gi, nvidia.com/gpu: "1" }, limits: { cpu: "8", memory: 24Gi, nvidia.com/gpu: "1" } }

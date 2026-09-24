@@ -1,0 +1,14 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata: { name: energy-trading, namespace: argocd, finalizers: [resources-finalizer.argocd.argoproj.io] }
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/replace-me/devops-masterclass.git
+    targetRevision: main
+    path: "20. Final Mega Capstone Project/projects/18-kotlin-energy-trading-api/k8s/overlays/prod"
+  destination: { server: https://kubernetes.default.svc, namespace: energy-kotlin }
+  syncPolicy:
+    automated: { prune: true, selfHeal: true, allowEmpty: false }
+    syncOptions: [CreateNamespace=true, PruneLast=true]
+    retry: { limit: 5, backoff: { duration: 10s, factor: 2, maxDuration: 3m } }

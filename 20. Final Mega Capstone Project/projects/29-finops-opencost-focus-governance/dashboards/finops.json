@@ -1,0 +1,1 @@
+{"title":"FinOps Unit Economics","schemaVersion":41,"panels":[{"type":"stat","title":"Monthly allocated cost","targets":[{"expr":"sum(container_cpu_allocation)+sum(container_memory_allocation_bytes)"}]},{"type":"timeseries","title":"Cost by namespace","targets":[{"expr":"sum by (namespace) (node_total_hourly_cost)"}]}]}

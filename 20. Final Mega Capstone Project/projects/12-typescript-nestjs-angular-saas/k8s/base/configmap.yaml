@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: saas-config, namespace: saas-typescript }
+data:
+  APP_ENV: "kubernetes"
+  LOG_LEVEL: "info"
+  API_URL: "http://saas-api"
+  FRONTEND_URL: "http://saas-frontend"

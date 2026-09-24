@@ -1,0 +1,4 @@
+organization_id = "123456789012"
+billing_account  = "000000-000000-000000"
+unique_suffix    = "replace"
+security_group   = "cloud-security@example.com"

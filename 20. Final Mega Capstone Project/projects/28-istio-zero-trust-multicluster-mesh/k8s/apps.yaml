@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: catalog, namespace: mesh-shop }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: catalog } }
+  template:
+    metadata: { labels: { app: catalog, version: v1 } }
+    spec:
+      serviceAccountName: catalog
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: api
+          image: ghcr.io/replace/catalog@sha256:replace
+          ports: [{ name: http, containerPort: 8080 }]
+          resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { cpu: 500m, memory: 256Mi } }
+          readinessProbe: { httpGet: { path: /ready, port: http } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: catalog, namespace: mesh-shop }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: catalog, namespace: mesh-shop }
+spec: { selector: { app: catalog }, ports: [{ name: http, port: 80, targetPort: http }] }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: inventory, namespace: mesh-shop }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: inventory } }
+  template:
+    metadata: { labels: { app: inventory, version: v1 } }
+    spec:
+      serviceAccountName: inventory
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: api
+          image: ghcr.io/replace/inventory@sha256:replace
+          ports: [{ name: http, containerPort: 8080 }]
+          resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { cpu: 500m, memory: 256Mi } }
+          readinessProbe: { httpGet: { path: /ready, port: http } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: inventory, namespace: mesh-shop }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: inventory, namespace: mesh-shop }
+spec: { selector: { app: inventory }, ports: [{ name: http, port: 80, targetPort: http }] }

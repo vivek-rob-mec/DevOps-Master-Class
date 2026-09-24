@@ -1,0 +1,10 @@
+project_name = "payment-risk"
+environment  = "dev"
+aws_region   = "us-east-1"
+vpc_cidr     = "10.40.0.0/16"
+kubernetes_version = "1.36" # verify current regional EKS support
+cluster_endpoint_public_access = false
+node_instance_types = ["m6i.large"]
+create_postgres = true
+postgres_instance_class = "db.t4g.micro"
+tags = { Owner = "replace-with-owner", CostCenter = "replace-with-cost-center", DataClass = "internal" }

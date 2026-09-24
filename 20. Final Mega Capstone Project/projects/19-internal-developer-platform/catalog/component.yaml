@@ -1,0 +1,8 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: payment-risk
+  annotations: { github.com/project-slug: replace-me/payment-risk, argocd/app-name: payment-risk-prod }
+  tags: [rust, kubernetes, tier-1]
+  links: [{ url: https://grafana.example.invalid, title: Service dashboard }]
+spec: { type: service, lifecycle: production, owner: platform-engineering, system: checkout, providesApis: [payment-risk-api] }

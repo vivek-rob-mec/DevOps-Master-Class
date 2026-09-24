@@ -1,0 +1,16 @@
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata: { name: order-api-single-pod, namespace: reliability-lab }
+spec: { action: pod-kill, mode: one, selector: { namespaces: [reliability-lab], labelSelectors: { app: order-api } }, duration: 30s }
+---
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata: { name: database-latency, namespace: reliability-lab }
+spec:
+  action: delay
+  mode: all
+  selector: { namespaces: [reliability-lab], labelSelectors: { app: order-api } }
+  delay: { latency: 500ms, correlation: "100", jitter: 50ms }
+  direction: to
+  target: { mode: all, selector: { namespaces: [database], labelSelectors: { app: postgres } } }
+  duration: 5m

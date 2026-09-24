@@ -1,0 +1,2 @@
+concept_id,stage,concept,status,first_practice_date,last_review_date,next_review_date,recall_score,evidence_path,remaining_gap
+request-process-01,01,HTTP response versus connection failure,planned,,,,,,Complete Lab 01 and explain the request path

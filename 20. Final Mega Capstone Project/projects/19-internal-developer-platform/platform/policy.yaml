@@ -1,0 +1,18 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata: { name: golden-path-baseline }
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: require-platform-controls
+      match: { any: [{ resources: { kinds: [Pod], namespaces: ["team-*"] } }] }
+      validate:
+        message: Workloads require non-root, resource limits, and immutable images.
+        pattern:
+          spec:
+            securityContext: { runAsNonRoot: true }
+            containers:
+              - resources: { requests: { cpu: "?*", memory: "?*" }, limits: { cpu: "?*", memory: "?*" } }
+                image: "*@sha256:*"
+                securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true }

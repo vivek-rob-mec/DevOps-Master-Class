@@ -1,0 +1,12 @@
+{
+  "name": "devops-masterclass/inventory-monolith",
+  "description": "Production-shaped PHP inventory modular monolith",
+  "type": "project",
+  "require": {
+    "php": "^8.3",
+    "slim/psr7": "^1.7",
+    "slim/slim": "^4.14"
+  },
+  "autoload": { "psr-4": { "Inventory\\": "src/" } },
+  "config": { "sort-packages": true, "allow-plugins": false }
+}

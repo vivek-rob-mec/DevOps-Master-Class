@@ -1,0 +1,40 @@
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: logistics-web, namespace: logistics-django }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: logistics-web }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: logistics-web, namespace: logistics-django }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: web, app.kubernetes.io/part-of: logistics }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: logistics-worker, namespace: logistics-django }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: logistics-worker }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: logistics-worker, namespace: logistics-django }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: worker, app.kubernetes.io/part-of: logistics }

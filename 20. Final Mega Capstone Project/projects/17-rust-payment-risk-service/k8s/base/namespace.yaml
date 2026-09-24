@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: payment-risk-rust
+  labels:
+    app.kubernetes.io/part-of: payment-risk
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: payment-risk, namespace: payment-risk-rust }
+automountServiceAccountToken: false

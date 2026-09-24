@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata: { name: qdrant, namespace: llm-platform }
+spec:
+  serviceName: qdrant
+  replicas: 1
+  selector: { matchLabels: { app: qdrant } }
+  template:
+    metadata: { labels: { app: qdrant } }
+    spec:
+      containers:
+        - name: qdrant
+          image: qdrant/qdrant:v1.18.2
+          ports: [{ name: http, containerPort: 6333 }]
+          resources: { requests: { cpu: 250m, memory: 512Mi }, limits: { cpu: "2", memory: 2Gi } }
+          volumeMounts: [{ name: data, mountPath: /qdrant/storage }]
+          securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: [ALL] } }
+  volumeClaimTemplates: [{ metadata: { name: data }, spec: { accessModes: [ReadWriteOnce], resources: { requests: { storage: 20Gi } } } }]
+---
+apiVersion: v1
+kind: Service
+metadata: { name: qdrant, namespace: llm-platform }
+spec: { clusterIP: None, selector: { app: qdrant }, ports: [{ name: http, port: 6333, targetPort: http }] }

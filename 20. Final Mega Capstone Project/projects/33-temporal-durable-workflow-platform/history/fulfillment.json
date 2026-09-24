@@ -1,0 +1,1 @@
+{"workflow_id":"fulfillment-order-1001","events":[{"id":"1","type":"payment_authorized"},{"id":"2","type":"inventory_reserved"},{"id":"2","type":"inventory_reserved"},{"id":"3","type":"shipped"}],"expected_status":"shipped"}

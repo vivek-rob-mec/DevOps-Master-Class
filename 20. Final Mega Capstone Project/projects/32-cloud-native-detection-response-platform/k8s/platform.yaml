@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata: { name: security-ops, labels: { pod-security.kubernetes.io/enforce: restricted } }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: alert-routing, namespace: security-ops }
+data:
+  routing.json: '{"critical":"pager","high":"security-queue","medium":"hunt-queue","low":"archive"}'
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: { name: default-deny, namespace: security-ops }
+spec: { podSelector: {}, policyTypes: [Ingress, Egress] }

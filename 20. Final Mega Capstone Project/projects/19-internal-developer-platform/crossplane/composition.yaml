@@ -1,0 +1,45 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata: { name: app-kubernetes }
+spec:
+  compositeTypeRef: { apiVersion: platform.example.io/v1alpha1, kind: App }
+  mode: Pipeline
+  pipeline:
+    - step: render-resources
+      functionRef: { name: function-go-templating }
+      input:
+        apiVersion: gotemplating.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            apiVersion: apps/v1
+            kind: Deployment
+            metadata:
+              annotations: { gotemplating.fn.crossplane.io/composition-resource-name: deployment }
+              name: {{ .observed.composite.resource.metadata.name }}
+              namespace: {{ .observed.composite.resource.metadata.namespace }}
+            spec:
+              replicas: {{ .observed.composite.resource.spec.replicas }}
+              selector: { matchLabels: { app: {{ .observed.composite.resource.metadata.name }} } }
+              template:
+                metadata: { labels: { app: {{ .observed.composite.resource.metadata.name }} } }
+                spec:
+                  automountServiceAccountToken: false
+                  securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
+                  containers:
+                    - name: app
+                      image: {{ .observed.composite.resource.spec.image }}
+                      ports: [{ containerPort: {{ .observed.composite.resource.spec.port }} }]
+                      resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { cpu: 500m, memory: 512Mi } }
+                      securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+            ---
+            apiVersion: v1
+            kind: Service
+            metadata:
+              annotations: { gotemplating.fn.crossplane.io/composition-resource-name: service }
+              name: {{ .observed.composite.resource.metadata.name }}
+              namespace: {{ .observed.composite.resource.metadata.namespace }}
+            spec:
+              selector: { app: {{ .observed.composite.resource.metadata.name }} }
+              ports: [{ port: 80, targetPort: {{ .observed.composite.resource.spec.port }} }]

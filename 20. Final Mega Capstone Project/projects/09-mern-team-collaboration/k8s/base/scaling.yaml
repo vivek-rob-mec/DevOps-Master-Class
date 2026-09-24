@@ -1,0 +1,40 @@
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: collaboration-api, namespace: collaboration-mern }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: collaboration-api }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: collaboration-api, namespace: collaboration-mern }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: api, app.kubernetes.io/part-of: collaboration }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: collaboration-frontend, namespace: collaboration-mern }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: collaboration-frontend }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: collaboration-frontend, namespace: collaboration-mern }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: collaboration }

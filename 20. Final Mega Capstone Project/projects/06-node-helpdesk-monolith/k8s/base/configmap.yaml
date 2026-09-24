@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: helpdesk-config, namespace: helpdesk-node }
+data:
+  APP_ENV: "kubernetes"
+  LOG_LEVEL: "info"
+  APP_URL: "http://helpdesk-app"

@@ -1,0 +1,10 @@
+body { --accent:#9b5b20; --soft:#fbf1e5; background:#f8f6f2; }
+.topbar { background:#3c3025; }
+.brand span { color:#f0c893; }
+.stat strong { font-size:clamp(18px,2vw,28px); overflow-wrap:anywhere; }
+textarea { font-family:inherit; }
+#cost-csv,#usage-csv { font:11px ui-monospace,monospace; }
+#daily { max-height:160px; }
+.over { color:#a43d29; font-weight:650; }
+.under { color:#35714d; }
+.chart svg { max-height:235px; }

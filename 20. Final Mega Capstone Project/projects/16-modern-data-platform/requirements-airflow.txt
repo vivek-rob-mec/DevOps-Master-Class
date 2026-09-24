@@ -1,0 +1,4 @@
+dbt-postgres==1.10.0
+jsonschema==4.25.1
+psycopg[binary]==3.2.10
+confluent-kafka==2.11.1

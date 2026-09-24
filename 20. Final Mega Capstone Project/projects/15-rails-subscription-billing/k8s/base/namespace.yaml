@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: billing-rails
+  labels:
+    app.kubernetes.io/part-of: billing
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: billing, namespace: billing-rails }
+automountServiceAccountToken: false

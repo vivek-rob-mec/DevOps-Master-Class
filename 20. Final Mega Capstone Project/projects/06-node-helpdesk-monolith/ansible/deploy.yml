@@ -1,0 +1,25 @@
+---
+- name: Deploy Node.js Helpdesk Modular Monolith
+  hosts: app_hosts
+  become: true
+  serial: 1
+  vars: { project_dir: /opt/06-node-helpdesk-monolith }
+  pre_tasks:
+    - ansible.builtin.assert: { that: ["registry is defined", "image_tag is defined"], fail_msg: "Provide approved registry and immutable image_tag." }
+    - ansible.builtin.apt: { name: [docker.io, docker-compose-v2, ca-certificates, curl], state: present, update_cache: true }
+    - ansible.builtin.service: { name: docker, state: started, enabled: true }
+  tasks:
+    - ansible.builtin.file: { path: "{{ project_dir }}", state: directory, owner: root, group: docker, mode: "0750" }
+    - ansible.builtin.copy: { src: "{{ playbook_dir }}/../", dest: "{{ project_dir }}/", owner: root, group: docker, mode: preserve }
+    - ansible.builtin.template: { src: env.j2, dest: "{{ project_dir }}/.env", owner: root, group: docker, mode: "0640" }
+      no_log: true
+    - ansible.builtin.command: { cmd: "docker compose config --quiet", chdir: "{{ project_dir }}" }
+      changed_when: false
+    - ansible.builtin.command: { cmd: "docker compose pull", chdir: "{{ project_dir }}" }
+      changed_when: true
+    - community.docker.docker_compose_v2: { project_src: "{{ project_dir }}", state: present, remove_orphans: true, wait: true, wait_timeout: 180 }
+    - ansible.builtin.uri: { url: "http://127.0.0.1:8086/health", status_code: 200 }
+      register: health
+      retries: 20
+      delay: 3
+      until: health.status == 200

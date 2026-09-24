@@ -1,0 +1,4 @@
+{"id":"evt-1","timestamp":"2026-08-16T01:00:00Z","event_type":"process_start","environment":"prod","namespace":"payments","pod":"checkout-1","principal":"system:serviceaccount:payments:checkout","command":"/bin/sh -c whoami","immutable":true}
+{"id":"evt-2","timestamp":"2026-08-16T01:01:00Z","event_type":"k8s_audit","verb":"get","resource":"secrets","namespace":"payments","principal":"system:serviceaccount:default:debug","authorized":true}
+{"id":"evt-3","timestamp":"2026-08-16T01:02:00Z","event_type":"process_start","environment":"prod","namespace":"catalog","pod":"catalog-2","principal":"system:serviceaccount:catalog:api","command":"apt-get install curl","immutable":true}
+{"id":"evt-4","timestamp":"2026-08-16T01:03:00Z","event_type":"process_start","environment":"dev","namespace":"sandbox","pod":"toolbox","principal":"developer","command":"/bin/bash","immutable":false}

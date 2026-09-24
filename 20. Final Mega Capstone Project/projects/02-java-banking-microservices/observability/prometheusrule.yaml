@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: banking, namespace: banking-java }
+spec:
+  groups:
+    - name: banking.availability
+      rules:
+        - alert: PublicEndpointDown
+          expr: up{namespace="banking-java",service="banking-gateway"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations: { summary: "banking entry workload is down", runbook_url: "docs/RUNBOOK.md" }

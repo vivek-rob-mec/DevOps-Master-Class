@@ -1,0 +1,8 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata: { name: workloads, namespace: argocd }
+spec:
+  sourceRepos: [https://github.com/replace-me/platform-environments.git]
+  destinations: [{ namespace: "team-*", server: https://kubernetes.default.svc }]
+  clusterResourceWhitelist: []
+  namespaceResourceBlacklist: [{ group: "", kind: ResourceQuota }]

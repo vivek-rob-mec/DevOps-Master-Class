@@ -1,0 +1,1 @@
+{"name":"node-notification-service","private":true,"version":"0.1.0","type":"module","scripts":{"start":"node src/index.js","test":"node --test"},"dependencies":{"cors":"2.8.6","express":"5.2.1","prom-client":"15.1.3"}}

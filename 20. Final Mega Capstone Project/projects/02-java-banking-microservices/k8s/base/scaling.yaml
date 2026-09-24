@@ -1,0 +1,80 @@
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: banking-gateway, namespace: banking-java }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: banking-gateway }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: banking-gateway, namespace: banking-java }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: banking }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: banking-accounts, namespace: banking-java }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: banking-accounts }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: banking-accounts, namespace: banking-java }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: accounts, app.kubernetes.io/part-of: banking }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: banking-ledger, namespace: banking-java }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: banking-ledger }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: banking-ledger, namespace: banking-java }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: ledger, app.kubernetes.io/part-of: banking }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: banking-frontend, namespace: banking-java }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: banking-frontend }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: banking-frontend, namespace: banking-java }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: banking }

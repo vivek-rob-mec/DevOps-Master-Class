@@ -1,0 +1,2 @@
+import json,os,urllib.request
+url=os.getenv("GATEWAY_URL","http://localhost:8107")+"/v1/documents";payload={"id":"refund-policy","tenant":"demo","source":"https://docs.example.com/refunds","version":"2026-08","text":"Customers may request a refund within thirty days of purchase. A receipt is required."};request=urllib.request.Request(url,data=json.dumps(payload).encode(),headers={"Content-Type":"application/json"},method="POST");print(urllib.request.urlopen(request).read().decode())

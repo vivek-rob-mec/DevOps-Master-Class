@@ -1,0 +1,1 @@
+{"backup_id":"replace","target_time":"2026-08-10T10:00:00Z","restore_started":"2026-08-16T01:00:00Z","restore_completed":"2026-08-16T01:18:00Z","rto_seconds":1080,"rpo_seconds":120,"row_count":100000,"logical_checksum":"replace","owner":"database-platform","passed":true}

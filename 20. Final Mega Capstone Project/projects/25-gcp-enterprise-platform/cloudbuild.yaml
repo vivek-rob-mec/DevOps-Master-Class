@@ -1,0 +1,11 @@
+options: { logging: CLOUD_LOGGING_ONLY, requestedVerifyOption: VERIFIED }
+steps:
+  - name: python:3.14.1-slim
+    entrypoint: python
+    args: [-m, unittest, discover, -s, tests, -v]
+  - name: gcr.io/cloud-builders/docker
+    args: [build, -f, app/Dockerfile, -t, "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/sample-api:$COMMIT_SHA", app]
+  - name: gcr.io/cloud-builders/docker
+    args: [push, "${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/sample-api:$COMMIT_SHA"]
+images: ["${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPOSITORY}/sample-api:$COMMIT_SHA"]
+substitutions: { _REGION: asia-south1, _REPOSITORY: masterclass-dev }

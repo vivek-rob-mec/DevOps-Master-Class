@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: booking
+  namespace: booking-node
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "15"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: booking.local.example
+      http:
+        paths:
+          - path: /health
+            pathType: Exact
+            backend: { service: { name: booking-gateway, port: { number: 80 } } }
+          - path: /api
+            pathType: Prefix
+            backend: { service: { name: booking-gateway, port: { number: 80 } } }
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: booking-frontend, port: { number: 80 } } }

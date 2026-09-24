@@ -1,0 +1,29 @@
+services:
+  mongo:
+    image: mongo:8.0
+    environment: { MONGO_INITDB_ROOT_USERNAME: "${MONGO_USERNAME:-app}", MONGO_INITDB_ROOT_PASSWORD: "${MONGO_PASSWORD:-local-development-only}", MONGO_INITDB_DATABASE: "${MONGO_DATABASE:-collaboration}" }
+    volumes: [mongo-data:/data/db]
+    healthcheck: { test: ["CMD","mongosh","--quiet","--username","${MONGO_USERNAME:-app}","--password","${MONGO_PASSWORD:-local-development-only}","--authenticationDatabase","admin","--eval","db.adminCommand('ping').ok"], interval: 5s, timeout: 4s, retries: 30 }
+    networks: [data]
+  api:
+    image: ${REGISTRY:-local}/09-mern-team-collaboration-api:${IMAGE_TAG:-dev}
+    build: { context: api }
+    environment: { PORT: 4000, MONGO_URI: "mongodb://${MONGO_USERNAME:-app}:${MONGO_PASSWORD:-local-development-only}@mongo:27017/${MONGO_DATABASE:-collaboration}?authSource=admin" }
+    depends_on: { mongo: { condition: service_healthy } }
+    healthcheck: { test: ["CMD","node","-e","fetch('http://localhost:4000/health').then(r=>{if(!r.ok)process.exit(1)})"], interval: 5s, timeout: 3s, retries: 20 }
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    networks: [backend,data]
+  frontend:
+    image: ${REGISTRY:-local}/09-mern-team-collaboration-frontend:${IMAGE_TAG:-dev}
+    build: { context: frontend }
+    environment: { API_URL: http://api:4000 }
+    ports: ["${PUBLIC_PORT:-8089}:8080"]
+    depends_on: { api: { condition: service_healthy } }
+    read_only: true
+    tmpfs: [/tmp,/var/cache/nginx,/var/run]
+    security_opt: [no-new-privileges:true]
+    networks: [edge,backend]
+networks: { edge: {}, backend: { internal: true }, data: { internal: true } }
+volumes: { mongo-data: {} }

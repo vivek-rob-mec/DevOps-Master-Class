@@ -1,0 +1,56 @@
+x-ml-env: &ml-env
+  MLFLOW_TRACKING_URI: http://mlflow:5000
+  MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+  AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER:-minio}
+  AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-local-development-only}
+  AWS_DEFAULT_REGION: us-east-1
+  MODEL_NAME: ${MODEL_NAME:-fraud-risk}
+  MODEL_ALIAS: ${MODEL_ALIAS:-champion}
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: "${POSTGRES_USER:-mlflow}", POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-local-development-only}", POSTGRES_DB: "${POSTGRES_DB:-mlflow}" }
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL","pg_isready -U ${POSTGRES_USER:-mlflow} -d ${POSTGRES_DB:-mlflow}"], interval: 5s, timeout: 3s, retries: 30 }
+    networks: [data]
+  minio:
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: ["server","/data","--console-address",":9001"]
+    environment: { MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minio}", MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-local-development-only}" }
+    volumes: [minio-data:/data]
+    ports: ["${MINIO_CONSOLE_PORT:-8104}:9001"]
+    healthcheck: { test: ["CMD","curl","-f","http://localhost:9000/minio/health/live"], interval: 5s, timeout: 3s, retries: 30 }
+    networks: [data]
+  minio-init:
+    image: quay.io/minio/mc:RELEASE.2025-08-13T08-35-41Z
+    entrypoint: ["sh","-c"]
+    command: ["mc alias set local http://minio:9000 ${MINIO_ROOT_USER:-minio} ${MINIO_ROOT_PASSWORD:-local-development-only} && mc mb --ignore-existing local/mlflow"]
+    depends_on: { minio: { condition: service_healthy } }
+    networks: [data]
+  mlflow:
+    build: { context: ., dockerfile: Dockerfile.mlflow }
+    command: ["mlflow","server","--backend-store-uri","postgresql+psycopg2://${POSTGRES_USER:-mlflow}:${POSTGRES_PASSWORD:-local-development-only}@postgres:5432/${POSTGRES_DB:-mlflow}","--artifacts-destination","s3://mlflow","--host","0.0.0.0","--port","5000"]
+    environment: *ml-env
+    ports: ["${MLFLOW_PORT:-8103}:5000"]
+    depends_on: { postgres: { condition: service_healthy }, minio-init: { condition: service_completed_successfully } }
+    healthcheck: { test: ["CMD","python","-c","import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"], interval: 5s, timeout: 3s, retries: 30 }
+    networks: [edge,data]
+  trainer:
+    profiles: [train]
+    build: .
+    command: ["python","trainer/train.py"]
+    environment: *ml-env
+    depends_on: { mlflow: { condition: service_healthy } }
+    networks: [data]
+  api:
+    build: .
+    image: ${REGISTRY:-local}/21-mlops-model-delivery-platform-api:${IMAGE_TAG:-dev}
+    environment: *ml-env
+    ports: ["${API_PORT:-8102}:8080"]
+    depends_on: { mlflow: { condition: service_healthy } }
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    networks: [edge,data]
+networks: { edge: {}, data: { internal: true } }
+volumes: { postgres-data: {}, minio-data: {} }

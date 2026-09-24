@@ -1,0 +1,11 @@
+apiVersion: cilium.io/v1alpha1
+kind: TracingPolicyNamespaced
+metadata: { name: sensitive-process-execution, namespace: payments }
+spec:
+  kprobes:
+    - call: security_file_open
+      syscall: false
+      args: [{ index: 0, type: file }]
+      selectors:
+        - matchArgs: [{ index: 0, operator: Prefix, values: [/etc/shadow, /var/run/secrets] }]
+          matchActions: [{ action: Post }]

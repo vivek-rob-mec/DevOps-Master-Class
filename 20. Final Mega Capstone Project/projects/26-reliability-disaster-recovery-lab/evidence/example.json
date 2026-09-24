@@ -1,0 +1,1 @@
+{"experiment":"database-latency","started_at":"2026-01-01T00:00:00Z","detection_seconds":25,"recovery_seconds":180,"data_loss_seconds":0,"successful_requests":9950,"total_requests":10000,"backup_id":"replace","restore_checksum":"replace","incident_owner":"replace"}

@@ -1,0 +1,20 @@
+{
+  "apiVersion": "v1",
+  "kind": "Service",
+  "metadata": {
+    "name": "deployment-demo"
+  },
+  "spec": {
+    "type": "ClusterIP",
+    "selector": {
+      "app.kubernetes.io/name": "deployment-demo"
+    },
+    "ports": [
+      {
+        "port": 80,
+        "targetPort": "http",
+        "name": "http"
+      }
+    ]
+  }
+}

@@ -1,0 +1,29 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata: { name: verify-production-images }
+spec:
+  validationFailureAction: Enforce
+  background: true
+  webhookConfiguration: { failurePolicy: Fail }
+  rules:
+    - name: verify-keyless-signature-and-provenance
+      match: { any: [{ resources: { kinds: [Pod], namespaces: [secure-runtime] } }] }
+      verifyImages:
+        - imageReferences: ["ghcr.io/replace/*"]
+          required: true
+          verifyDigest: true
+          mutateDigest: false
+          attestors:
+            - entries:
+                - keyless:
+                    issuer: https://token.actions.githubusercontent.com
+                    subject: https://github.com/replace/repository/.github/workflows/release.yml@refs/heads/main
+                    rekor: { url: https://rekor.sigstore.dev }
+          attestations:
+            - predicateType: https://slsa.dev/provenance/v1
+              attestors:
+                - entries:
+                    - keyless:
+                        issuer: https://token.actions.githubusercontent.com
+                        subject: https://github.com/replace/repository/.github/workflows/release.yml@refs/heads/main
+                        rekor: { url: https://rekor.sigstore.dev }

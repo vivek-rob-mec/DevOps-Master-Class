@@ -1,0 +1,9 @@
+name: order_analytics
+version: 1.0.0
+config-version: 2
+profile: order_analytics
+model-paths: [models]
+models:
+  order_analytics:
+    staging: { materialized: view }
+    marts: { materialized: table }

@@ -1,0 +1,12 @@
+groups:
+  - name: checkout-slo
+    rules:
+      - record: checkout:requests:rate5m
+        expr: sum(rate(checkout_requests_total[5m]))
+      - record: checkout:errors:ratio5m
+        expr: sum(rate(checkout_requests_total{http_status_code=~"5.."}[5m])) / clamp_min(sum(rate(checkout_requests_total[5m])), 0.001)
+      - alert: CheckoutErrorBudgetFastBurn
+        expr: checkout:errors:ratio5m > (14.4 * 0.01)
+        for: 5m
+        labels: { severity: page, service: checkout-observability }
+        annotations: { summary: Checkout is rapidly consuming its 99% availability error budget, runbook_url: https://example.invalid/runbooks/checkout }

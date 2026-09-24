@@ -1,0 +1,6 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: { name: logistics, namespace: logistics-django }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: web, app.kubernetes.io/part-of: logistics } }
+  endpoints: [{ port: http, path: /metrics, interval: 30s, scrapeTimeout: 10s }]

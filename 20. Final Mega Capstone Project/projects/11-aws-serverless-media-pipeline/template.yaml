@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Local-development SAM model; Terraform is the deployment authority.
+Globals:
+  Function: { Runtime: python3.12, Architectures: [arm64], Timeout: 15, MemorySize: 256, Tracing: Active, Environment: { Variables: { JOBS_TABLE: !Ref JobsTable, QUEUE_URL: !Ref WorkQueue } } }
+Resources:
+  Api: { Type: AWS::Serverless::HttpApi, Properties: { StageName: dev } }
+  IntakeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/intake
+      Handler: app.handler
+      Policies: [{ DynamoDBCrudPolicy: { TableName: !Ref JobsTable } }, { SQSSendMessagePolicy: { QueueName: !GetAtt WorkQueue.QueueName } }]
+      Events: { Submit: { Type: HttpApi, Properties: { ApiId: !Ref Api, Path: /jobs, Method: POST } } }
+  WorkerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/worker
+      Handler: app.handler
+      Timeout: 30
+      Policies: [{ DynamoDBCrudPolicy: { TableName: !Ref JobsTable } }, { S3ReadPolicy: { BucketName: !Ref MediaBucket } }]
+      Events: { Work: { Type: SQS, Properties: { Queue: !GetAtt WorkQueue.Arn, BatchSize: 10, FunctionResponseTypes: [ReportBatchItemFailures] } } }
+  JobsTable: { Type: AWS::Serverless::SimpleTable, Properties: { PrimaryKey: { Name: jobId, Type: String }, SSESpecification: { SSEEnabled: true } } }
+  DeadLetterQueue: { Type: AWS::SQS::Queue, Properties: { SqsManagedSseEnabled: true, MessageRetentionPeriod: 1209600 } }
+  WorkQueue: { Type: AWS::SQS::Queue, Properties: { SqsManagedSseEnabled: true, VisibilityTimeout: 180, RedrivePolicy: { deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn, maxReceiveCount: 5 } } }
+  MediaBucket: { Type: AWS::S3::Bucket, Properties: { PublicAccessBlockConfiguration: { BlockPublicAcls: true, BlockPublicPolicy: true, IgnorePublicAcls: true, RestrictPublicBuckets: true }, BucketEncryption: { ServerSideEncryptionConfiguration: [{ ServerSideEncryptionByDefault: { SSEAlgorithm: AES256 } }] } } }

@@ -1,0 +1,41 @@
+services:
+  app:
+    build: app
+    image: ${REGISTRY:-local}/20-opentelemetry-observability-platform-app:${IMAGE_TAG:-dev}
+    environment: { OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318, OTEL_SAMPLE_RATIO: "${OTEL_SAMPLE_RATIO:-1.0}", ENVIRONMENT: local }
+    ports: ["${APP_PORT:-8099}:8080"]
+    depends_on: [otel-collector]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    networks: [telemetry]
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.157.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes: [./otel/collector.yaml:/etc/otelcol/config.yaml:ro]
+    networks: [telemetry]
+  prometheus:
+    image: prom/prometheus:v3.12.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml","--storage.tsdb.retention.time=7d"]
+    volumes: [./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro,./prometheus/rules.yml:/etc/prometheus/rules.yml:ro,prometheus-data:/prometheus]
+    ports: ["${PROMETHEUS_PORT:-8100}:9090"]
+    networks: [telemetry]
+  tempo:
+    image: grafana/tempo:2.10.0
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes: [./tempo/tempo.yaml:/etc/tempo.yaml:ro,tempo-data:/var/tempo]
+    networks: [telemetry]
+  loki:
+    image: grafana/loki:3.7.3
+    command: ["-config.file=/etc/loki/local-config.yaml"]
+    volumes: [./loki/loki.yaml:/etc/loki/local-config.yaml:ro,loki-data:/loki]
+    networks: [telemetry]
+  grafana:
+    image: grafana/grafana:13.1.0
+    environment: { GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:-local-development-only}", GF_USERS_ALLOW_SIGN_UP: "false" }
+    volumes: [./grafana/provisioning:/etc/grafana/provisioning:ro,./grafana/dashboards:/var/lib/grafana/dashboards:ro,grafana-data:/var/lib/grafana]
+    ports: ["${GRAFANA_PORT:-8101}:3000"]
+    depends_on: [prometheus,tempo,loki]
+    networks: [telemetry]
+networks: { telemetry: {} }
+volumes: { prometheus-data: {}, tempo-data: {}, loki-data: {}, grafana-data: {} }

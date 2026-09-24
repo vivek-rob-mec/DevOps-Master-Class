@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "U7pv4gIpv08=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\VivekSaroj\\Documents\\DevOps_Masterclass_Enhancement\\20. Final Mega Capstone Project\\projects\\13-dotnet-insurance-monolith\\app\\Claims.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\VivekSaroj\\.nuget\\packages\\npgsql\\10.0.3\\npgsql.10.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

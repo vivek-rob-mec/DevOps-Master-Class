@@ -1,0 +1,5 @@
+project_name = "modern-data-platform"
+environment  = "dev"
+aws_region   = "us-east-1"
+force_destroy = false
+tags = { Owner = "replace-with-owner", CostCenter = "replace-with-cost-center", DataClass = "confidential" }

@@ -1,0 +1,14 @@
+name: platform-contracts
+on: { pull_request: {}, push: { branches: [main] }, workflow_dispatch: {} }
+permissions: { contents: read }
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: kubectl kustomize . >/tmp/platform.yaml
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform -chdir=terraform fmt -check -recursive
+      - run: terraform -chdir=terraform init -backend=false && terraform -chdir=terraform validate
+      - uses: stackrox/kube-linter-action@v1
+        with: { directory: templates/service/skeleton/k8s }

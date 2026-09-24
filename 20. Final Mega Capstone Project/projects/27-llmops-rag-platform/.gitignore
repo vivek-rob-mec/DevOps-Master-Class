@@ -1,0 +1,6 @@
+.env
+__pycache__/
+.terraform/
+*.tfstate*
+eval/results/
+qdrant-data/

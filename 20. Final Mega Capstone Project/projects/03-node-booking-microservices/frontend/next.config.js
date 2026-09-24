@@ -1,0 +1,1 @@
+const nextConfig={output:"standalone",async rewrites(){const gateway=process.env.GATEWAY_URL||"http://gateway:3000";return[{source:"/health",destination:`${gateway}/health`},{source:"/api/:path*",destination:`${gateway}/api/:path*`}];}};module.exports=nextConfig;

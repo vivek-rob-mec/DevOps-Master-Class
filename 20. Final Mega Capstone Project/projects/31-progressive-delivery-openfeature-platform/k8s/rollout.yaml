@@ -1,0 +1,45 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata: { name: checkout, namespace: progressive }
+spec:
+  replicas: 5
+  revisionHistoryLimit: 3
+  selector: { matchLabels: { app: checkout } }
+  strategy:
+    canary:
+      stableService: checkout-stable
+      canaryService: checkout-canary
+      maxUnavailable: 0
+      maxSurge: 1
+      analysis:
+        templates: [{ templateName: checkout-health }]
+        args: [{ name: service-name, value: checkout-canary }]
+        startingStep: 1
+      steps:
+        - setWeight: 5
+        - pause: { duration: 2m }
+        - setWeight: 20
+        - pause: { duration: 5m }
+        - setWeight: 50
+        - pause: { duration: 10m }
+        - setWeight: 100
+  template:
+    metadata:
+      labels: { app: checkout }
+      annotations:
+        openfeature.dev/enabled: "true"
+        openfeature.dev/featureflagsource: checkout-flags
+    spec:
+      serviceAccountName: checkout
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: checkout
+          image: ghcr.io/replace/checkout@sha256:replace
+          ports: [{ name: http, containerPort: 8080 }]
+          resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { cpu: "1", memory: 512Mi } }
+          readinessProbe: { httpGet: { path: /healthz, port: http } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: checkout, namespace: progressive }

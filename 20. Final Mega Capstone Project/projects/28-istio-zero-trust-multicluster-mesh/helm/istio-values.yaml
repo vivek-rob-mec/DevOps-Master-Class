@@ -1,0 +1,16 @@
+profile: ambient
+global:
+  meshID: production-mesh
+  multiCluster: { clusterName: replace-cluster }
+  network: replace-network
+meshConfig:
+  trustDomain: corp.internal
+  trustDomainAliases: [east.corp.internal, west.corp.internal]
+  accessLogFile: /dev/stdout
+  defaultConfig: { holdApplicationUntilProxyStarts: true }
+pilot:
+  autoscaleEnabled: true
+  autoscaleMin: 2
+  env: { PILOT_ENABLE_AMBIENT: "true" }
+cni: { ambient: { enabled: true } }
+ztunnel: { resourceName: ztunnel, terminationGracePeriodSeconds: 30 }

@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Namespace
+metadata: { name: reliability-lab, labels: { pod-security.kubernetes.io/enforce: restricted } }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: order-api, namespace: reliability-lab }
+spec:
+  replicas: 3
+  selector: { matchLabels: { app: order-api } }
+  template:
+    metadata: { labels: { app: order-api } }
+    spec:
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: api
+          image: ghcr.io/replace/order-api@sha256:replace
+          env: [{ name: DATABASE_URL, valueFrom: { secretKeyRef: { name: database, key: url } } }]
+          ports: [{ name: http, containerPort: 8080 }]
+          resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { cpu: "1", memory: 512Mi } }
+          readinessProbe: { httpGet: { path: /ready, port: http }, periodSeconds: 3, timeoutSeconds: 2, failureThreshold: 2 }
+          livenessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 10 }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: order-api, namespace: reliability-lab }
+spec: { selector: { app: order-api }, ports: [{ name: http, port: 80, targetPort: http }] }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: order-api, namespace: reliability-lab }
+spec: { minAvailable: 2, selector: { matchLabels: { app: order-api } } }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: order-api, namespace: reliability-lab }
+spec: { scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: order-api }, minReplicas: 3, maxReplicas: 12, metrics: [{ type: Resource, resource: { name: cpu, target: { type: Utilization, averageUtilization: 65 } } }] }

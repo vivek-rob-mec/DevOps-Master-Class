@@ -1,0 +1,15 @@
+image:
+  registry: ghcr.io
+  owner: replace-me
+  prefix: 03-node-booking-microservices
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+existingSecret: ""
+config: { APP_ENV: production, LOG_LEVEL: info }
+workloads:
+  - { name: gateway, port: 3000, health: /health, replicas: 2 }
+  - { name: booking, port: 3001, health: /health, replicas: 2 }
+  - { name: notification, port: 3002, health: /health, replicas: 2 }
+  - { name: frontend, port: 3000, health: /health, replicas: 2 }
+ingress: { enabled: true, className: nginx, host: booking.example.com }
+autoscaling: { enabled: true, min: 2, max: 6, cpu: 70 }

@@ -1,0 +1,6 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: { name: learning, namespace: learning-python }
+spec:
+  selector: { matchLabels: { app.kubernetes.io/name: app, app.kubernetes.io/part-of: learning } }
+  endpoints: [{ port: http, path: /metrics, interval: 30s, scrapeTimeout: 10s }]

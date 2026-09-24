@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: energy-trading, namespace: energy-kotlin }
+spec:
+  groups:
+    - name: energy-trading.availability
+      rules:
+        - alert: PublicEndpointDown
+          expr: up{namespace="energy-kotlin",service="energy-trading-app"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations: { summary: "energy-trading entry workload is down", runbook_url: "docs/RUNBOOK.md" }

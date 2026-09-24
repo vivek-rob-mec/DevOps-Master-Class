@@ -1,0 +1,5 @@
+[
+  {"id":"CNDR-001","title":"Interactive shell in production container","owner":"security-platform","severity":"high","equals":{"environment":"prod","event_type":"process_start"},"contains":{"command":"/bin/sh"},"runbook":"docs/RUNBOOK.md#interactive-shell","test_fixture":"evt-1","review_after":"2027-01-31T00:00:00Z","enabled":true},
+  {"id":"CNDR-002","title":"Kubernetes secret read by unexpected identity","owner":"identity-security","severity":"critical","equals":{"event_type":"k8s_audit","verb":"get","resource":"secrets","authorized":true},"contains":{"principal":"system:serviceaccount:default:"},"runbook":"docs/RUNBOOK.md#secret-access","test_fixture":"evt-2","review_after":"2027-01-31T00:00:00Z","enabled":true},
+  {"id":"CNDR-003","title":"Package manager executed in immutable workload","owner":"security-platform","severity":"medium","equals":{"event_type":"process_start","immutable":true},"contains":{"command":"apt-get"},"runbook":"docs/RUNBOOK.md#runtime-drift","test_fixture":"evt-3","review_after":"2027-01-31T00:00:00Z","enabled":true}
+]

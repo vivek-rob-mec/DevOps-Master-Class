@@ -1,0 +1,4 @@
+apiVersion: platform.example.io/v1alpha1
+kind: App
+metadata: { name: example-service, namespace: team-example }
+spec: { image: ghcr.io/replace-me/example-service@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, port: 8080, replicas: 2 }

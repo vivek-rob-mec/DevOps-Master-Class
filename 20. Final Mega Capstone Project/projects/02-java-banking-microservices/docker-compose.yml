@@ -1,0 +1,29 @@
+services:
+  accounts:
+    image: ${REGISTRY:-local}/02-java-banking-microservices-accounts:${IMAGE_TAG:-dev}
+    build: { context: ., dockerfile: services/accounts/Dockerfile }
+    environment: { PORT: 8081 }
+    healthcheck: { test: ["CMD","curl","-fsS","http://localhost:8081/actuator/health"], interval: 5s, timeout: 3s, retries: 30 }
+    networks: [backend]
+  ledger:
+    image: ${REGISTRY:-local}/02-java-banking-microservices-ledger:${IMAGE_TAG:-dev}
+    build: { context: ., dockerfile: services/ledger/Dockerfile }
+    environment: { PORT: 8082, ACCOUNTS_URL: http://accounts:8081 }
+    depends_on: { accounts: { condition: service_healthy } }
+    healthcheck: { test: ["CMD","curl","-fsS","http://localhost:8082/actuator/health"], interval: 5s, timeout: 3s, retries: 30 }
+    networks: [backend]
+  gateway:
+    image: ${REGISTRY:-local}/02-java-banking-microservices-gateway:${IMAGE_TAG:-dev}
+    build: { context: ., dockerfile: services/gateway/Dockerfile }
+    environment: { PORT: 8080, ACCOUNTS_URL: http://accounts:8081, LEDGER_URL: http://ledger:8082 }
+    depends_on: { accounts: { condition: service_healthy }, ledger: { condition: service_healthy } }
+    healthcheck: { test: ["CMD","curl","-fsS","http://localhost:8080/actuator/health"], interval: 5s, timeout: 3s, retries: 30 }
+    networks: [backend,edge]
+  frontend:
+    image: ${REGISTRY:-local}/02-java-banking-microservices-frontend:${IMAGE_TAG:-dev}
+    build: { context: frontend }
+    environment: { GATEWAY_URL: http://gateway:8080 }
+    ports: ["${PUBLIC_PORT:-8082}:8080"]
+    depends_on: { gateway: { condition: service_healthy } }
+    networks: [edge]
+networks: { edge: {}, backend: { internal: true } }

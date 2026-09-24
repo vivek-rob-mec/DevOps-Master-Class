@@ -1,0 +1,4 @@
+apiVersion: platform.masterclass.io/v1alpha1
+kind: Environment
+metadata: { name: payments-dev }
+spec: { owner: payments-team, cpuQuota: "4", memoryQuota: 8Gi, deleteNamespace: true }

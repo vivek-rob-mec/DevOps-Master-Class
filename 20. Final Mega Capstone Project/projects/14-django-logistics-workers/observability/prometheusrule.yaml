@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: logistics, namespace: logistics-django }
+spec:
+  groups:
+    - name: logistics.availability
+      rules:
+        - alert: PublicEndpointDown
+          expr: up{namespace="logistics-django",service="logistics-web"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations: { summary: "logistics entry workload is down", runbook_url: "docs/RUNBOOK.md" }

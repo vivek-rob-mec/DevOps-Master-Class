@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: claims-config, namespace: claims-dotnet }
+data:
+  APP_ENV: "kubernetes"
+  LOG_LEVEL: "info"
+  APP_URL: "http://claims-app"

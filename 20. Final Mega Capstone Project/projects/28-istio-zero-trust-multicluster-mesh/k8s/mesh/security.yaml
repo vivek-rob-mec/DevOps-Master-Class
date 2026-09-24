@@ -1,0 +1,29 @@
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata: { name: strict, namespace: mesh-shop }
+spec: { mtls: { mode: STRICT } }
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: default-deny, namespace: mesh-shop }
+spec: {}
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: catalog-from-gateway, namespace: mesh-shop }
+spec:
+  selector: { matchLabels: { app: catalog } }
+  action: ALLOW
+  rules:
+    - from: [{ source: { principals: [cluster.local/ns/istio-system/sa/istio-ingressgateway-service-account] } }]
+      to: [{ operation: { methods: [GET], paths: [/catalog, /catalog/*] } }]
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata: { name: inventory-from-catalog, namespace: mesh-shop }
+spec:
+  selector: { matchLabels: { app: inventory } }
+  action: ALLOW
+  rules:
+    - from: [{ source: { principals: [cluster.local/ns/mesh-shop/sa/catalog] } }]
+      to: [{ operation: { methods: [GET], paths: [/inventory/*] } }]

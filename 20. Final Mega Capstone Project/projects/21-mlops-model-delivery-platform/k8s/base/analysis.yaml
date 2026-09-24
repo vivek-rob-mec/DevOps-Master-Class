@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata: { name: inference-success-rate, namespace: ml-platform }
+spec:
+  args: [{ name: service }]
+  metrics:
+    - name: success-rate
+      interval: 1m
+      count: 5
+      successCondition: result[0] >= 0.99
+      failureLimit: 2
+      provider:
+        prometheus:
+          address: http://prometheus-operated.monitoring.svc:9090
+          query: sum(rate(http_requests_total{service="{{args.service}}",status!~"5.."}[5m])) / sum(rate(http_requests_total{service="{{args.service}}"}[5m]))

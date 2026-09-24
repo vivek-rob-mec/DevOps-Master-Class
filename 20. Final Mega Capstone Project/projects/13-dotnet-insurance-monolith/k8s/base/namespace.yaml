@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: claims-dotnet
+  labels:
+    app.kubernetes.io/part-of: claims
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: claims, namespace: claims-dotnet }
+automountServiceAccountToken: false

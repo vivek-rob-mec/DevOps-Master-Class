@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: helpdesk-node
+  labels:
+    app.kubernetes.io/part-of: helpdesk
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: helpdesk, namespace: helpdesk-node }
+automountServiceAccountToken: false

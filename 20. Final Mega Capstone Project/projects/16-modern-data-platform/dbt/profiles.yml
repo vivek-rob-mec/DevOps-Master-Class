@@ -1,0 +1,12 @@
+order_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('PLATFORM_DATABASE_HOST', 'postgres') }}"
+      user: "{{ env_var('POSTGRES_USER', 'platform') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD', 'local-development-only') }}"
+      port: 5432
+      dbname: "{{ env_var('POSTGRES_DB', 'platform') }}"
+      schema: analytics
+      threads: 4

@@ -1,0 +1,4 @@
+project_id       = "masterclass-dev-app-replace"
+region           = "asia-south1"
+private_endpoint = true
+admin_cidr       = "10.0.0.0/8"

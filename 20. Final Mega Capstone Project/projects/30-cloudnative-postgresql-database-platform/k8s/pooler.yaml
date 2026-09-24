@@ -1,0 +1,15 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata: { name: orders-rw, namespace: database }
+spec:
+  cluster: { name: orders }
+  instances: 3
+  type: rw
+  pgbouncer:
+    poolMode: transaction
+    parameters: { max_client_conn: "1000", default_pool_size: "90", reserve_pool_size: "10", server_lifetime: "3600" }
+  template:
+    spec:
+      containers:
+        - name: pgbouncer
+          resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { cpu: "1", memory: 512Mi } }

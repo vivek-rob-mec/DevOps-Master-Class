@@ -1,0 +1,3 @@
+const priorities=new Set(["low","medium","high","critical"]);
+export function validateTicket(input={}){const title=String(input.title||"").trim(),customerEmail=String(input.customerEmail||"").trim().toLowerCase(),priority=String(input.priority||"medium");if(title.length<3||title.length>160)return{ok:false,code:"INVALID_TITLE"};if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customerEmail))return{ok:false,code:"INVALID_EMAIL"};if(!priorities.has(priority))return{ok:false,code:"INVALID_PRIORITY"};return{ok:true,value:{title,customerEmail,priority}}}
+export function calculateDueAt(priority,now=new Date()){const minutes={critical:30,high:240,medium:1440,low:4320}[priority];return new Date(now.getTime()+minutes*60000).toISOString()}

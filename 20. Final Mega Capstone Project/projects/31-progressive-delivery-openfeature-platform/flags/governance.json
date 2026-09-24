@@ -1,0 +1,11 @@
+{
+  "checkout-v2": {
+    "state":"ENABLED",
+    "percentage":10,
+    "includeGroups":["employees","qa"],
+    "owner":"checkout-team",
+    "ticket":"REL-3101",
+    "expires":"2027-01-31",
+    "safeDefault":"off"
+  }
+}

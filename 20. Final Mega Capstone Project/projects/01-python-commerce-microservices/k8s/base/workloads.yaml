@@ -1,0 +1,212 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: commerce-gateway
+  namespace: commerce-python
+  labels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: commerce }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy: { rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  selector:
+    matchLabels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: commerce }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: commerce }
+    spec:
+      serviceAccountName: commerce
+      automountServiceAccountToken: false
+      securityContext: { seccompProfile: { type: RuntimeDefault } }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: gateway
+          image: ghcr.io/replace-me/01-python-commerce-microservices-gateway:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{ name: http, containerPort: 8000 }]
+          env: [{ name: PORT, value: "8000" }]
+          envFrom:
+            - configMapRef: { name: commerce-config }
+            - secretRef: { name: commerce-runtime }
+          readinessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 5, periodSeconds: 5, timeoutSeconds: 2, failureThreshold: 6 }
+          livenessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 20, periodSeconds: 10, timeoutSeconds: 2 }
+          lifecycle: { preStop: { exec: { command: ["/bin/sh", "-c", "sleep 5"] } } }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 128Mi } }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: commerce-gateway
+  namespace: commerce-python
+  labels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: commerce }
+spec:
+  selector: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: commerce }
+  ports: [{ name: http, port: 80, targetPort: http }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: commerce-catalog
+  namespace: commerce-python
+  labels: { app.kubernetes.io/name: catalog, app.kubernetes.io/part-of: commerce }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy: { rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  selector:
+    matchLabels: { app.kubernetes.io/name: catalog, app.kubernetes.io/part-of: commerce }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: catalog, app.kubernetes.io/part-of: commerce }
+    spec:
+      serviceAccountName: commerce
+      automountServiceAccountToken: false
+      securityContext: { seccompProfile: { type: RuntimeDefault } }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: catalog
+          image: ghcr.io/replace-me/01-python-commerce-microservices-catalog:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{ name: http, containerPort: 8001 }]
+          env: [{ name: PORT, value: "8001" }]
+          envFrom:
+            - configMapRef: { name: commerce-config }
+            - secretRef: { name: commerce-runtime }
+          readinessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 5, periodSeconds: 5, timeoutSeconds: 2, failureThreshold: 6 }
+          livenessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 20, periodSeconds: 10, timeoutSeconds: 2 }
+          lifecycle: { preStop: { exec: { command: ["/bin/sh", "-c", "sleep 5"] } } }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 128Mi } }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: commerce-catalog
+  namespace: commerce-python
+  labels: { app.kubernetes.io/name: catalog, app.kubernetes.io/part-of: commerce }
+spec:
+  selector: { app.kubernetes.io/name: catalog, app.kubernetes.io/part-of: commerce }
+  ports: [{ name: http, port: 80, targetPort: http }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: commerce-orders
+  namespace: commerce-python
+  labels: { app.kubernetes.io/name: orders, app.kubernetes.io/part-of: commerce }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy: { rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  selector:
+    matchLabels: { app.kubernetes.io/name: orders, app.kubernetes.io/part-of: commerce }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: orders, app.kubernetes.io/part-of: commerce }
+    spec:
+      serviceAccountName: commerce
+      automountServiceAccountToken: false
+      securityContext: { seccompProfile: { type: RuntimeDefault } }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: orders
+          image: ghcr.io/replace-me/01-python-commerce-microservices-orders:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{ name: http, containerPort: 8002 }]
+          env: [{ name: PORT, value: "8002" }]
+          envFrom:
+            - configMapRef: { name: commerce-config }
+            - secretRef: { name: commerce-runtime }
+          readinessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 5, periodSeconds: 5, timeoutSeconds: 2, failureThreshold: 6 }
+          livenessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 20, periodSeconds: 10, timeoutSeconds: 2 }
+          lifecycle: { preStop: { exec: { command: ["/bin/sh", "-c", "sleep 5"] } } }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 128Mi } }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: commerce-orders
+  namespace: commerce-python
+  labels: { app.kubernetes.io/name: orders, app.kubernetes.io/part-of: commerce }
+spec:
+  selector: { app.kubernetes.io/name: orders, app.kubernetes.io/part-of: commerce }
+  ports: [{ name: http, port: 80, targetPort: http }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: commerce-frontend
+  namespace: commerce-python
+  labels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: commerce }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy: { rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  selector:
+    matchLabels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: commerce }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: commerce }
+    spec:
+      serviceAccountName: commerce
+      automountServiceAccountToken: false
+      securityContext: { seccompProfile: { type: RuntimeDefault } }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: frontend
+          image: ghcr.io/replace-me/01-python-commerce-microservices-frontend:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{ name: http, containerPort: 8080 }]
+          env: [{ name: PORT, value: "8080" }]
+          envFrom:
+            - configMapRef: { name: commerce-config }
+            - secretRef: { name: commerce-runtime }
+          readinessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 5, periodSeconds: 5, timeoutSeconds: 2, failureThreshold: 6 }
+          livenessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 20, periodSeconds: 10, timeoutSeconds: 2 }
+          lifecycle: { preStop: { exec: { command: ["/bin/sh", "-c", "sleep 5"] } } }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 128Mi } }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: commerce-frontend
+  namespace: commerce-python
+  labels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: commerce }
+spec:
+  selector: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: commerce }
+  ports: [{ name: http, port: 80, targetPort: http }]

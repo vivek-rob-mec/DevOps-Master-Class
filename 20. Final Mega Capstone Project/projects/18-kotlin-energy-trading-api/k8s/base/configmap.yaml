@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: energy-trading-config, namespace: energy-kotlin }
+data:
+  APP_ENV: "kubernetes"
+  LOG_LEVEL: "info"
+  APP_URL: "http://energy-trading-app"

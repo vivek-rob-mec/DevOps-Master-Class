@@ -1,0 +1,17 @@
+apiVersion: kyverno.io/v1
+kind: Policy
+metadata: { name: saas-baseline, namespace: saas-typescript }
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: secure-context
+      match: { any: [{ resources: { kinds: [Pod] } }] }
+      validate:
+        message: Containers must run non-root, deny privilege escalation, and drop capabilities.
+        pattern: { spec: { containers: [{ securityContext: { runAsNonRoot: true, allowPrivilegeEscalation: false, capabilities: { drop: [ALL] } } }] } }
+    - name: resources
+      match: { any: [{ resources: { kinds: [Pod] } }] }
+      validate:
+        message: CPU and memory requests and limits are required.
+        pattern: { spec: { containers: [{ resources: { requests: { cpu: "?*", memory: "?*" }, limits: { cpu: "?*", memory: "?*" } } }] } }

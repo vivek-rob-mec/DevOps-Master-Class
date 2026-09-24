@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: booking-config, namespace: booking-node }
+data:
+  APP_ENV: "kubernetes"
+  LOG_LEVEL: "info"
+  GATEWAY_URL: "http://booking-gateway"
+  BOOKING_URL: "http://booking-booking"
+  NOTIFICATION_URL: "http://booking-notification"
+  FRONTEND_URL: "http://booking-frontend"

@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sample-api
+  namespace: sample
+  annotations: { iam.gke.io/gcp-service-account: sample-api@replace.iam.gserviceaccount.com }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: sample-api, namespace: sample }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: sample-api } }
+  template:
+    metadata: { labels: { app: sample-api } }
+    spec:
+      serviceAccountName: sample-api
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: app
+          image: asia-south1-docker.pkg.dev/replace/platform/sample-api@sha256:replace
+          ports: [{ name: http, containerPort: 8080 }]
+          resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { cpu: 500m, memory: 256Mi } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: sample-api, namespace: sample }
+spec: { selector: { app: sample-api }, ports: [{ name: http, port: 80, targetPort: http }] }

@@ -1,0 +1,2 @@
+{"question":"What is the refund window?","answer":"The refund window is thirty days [refund-policy].","expected_document_ids":["refund-policy"]}
+{"question":"Is a receipt required?","answer":"A receipt is required [refund-policy].","expected_document_ids":["refund-policy"]}

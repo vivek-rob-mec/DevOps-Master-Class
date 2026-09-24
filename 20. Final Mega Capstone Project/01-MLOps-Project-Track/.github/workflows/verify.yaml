@@ -1,0 +1,53 @@
+name: Verify ML and AIOps projects
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+defaults:
+  run:
+    shell: bash
+jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Test the suite in its Linux runtime
+        run: |
+          docker run --rm -v "$PWD:/workspace" -w /workspace python:3.14-slim sh -ec '
+            pip install --no-cache-dir -r requirements.lock
+            python -m pytest tests -q
+            python scripts/run_suite.py
+            python scripts/smoke_live.py
+          '
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: mlops-evidence
+          path: evidence/
+  containers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [01-demand-forecasting, 02-payment-risk, 03-predictive-maintenance, 04-aiops-incident-triage]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Build, train, and health-check restricted containers
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: docker compose -f "$PROJECT/compose.yaml" up --build --wait --wait-timeout 240
+      - name: Logs and cleanup
+        if: always()
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: |
+          docker compose -f "$PROJECT/compose.yaml" logs
+          docker compose -f "$PROJECT/compose.yaml" down

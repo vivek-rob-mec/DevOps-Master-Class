@@ -1,0 +1,1 @@
+{"image_ref":"ghcr.io/replace/repository@sha256:replace","signature":{"verified":true,"subject":"ghcr.io/replace/repository@sha256:replace"},"provenance":{"slsa_build_level":2},"sbom":{"format":"spdx-json"},"scan":{"fixable_critical":0}}

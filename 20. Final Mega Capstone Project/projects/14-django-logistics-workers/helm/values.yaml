@@ -1,0 +1,13 @@
+image:
+  registry: ghcr.io
+  owner: replace-me
+  prefix: 14-django-logistics-workers
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+existingSecret: ""
+config: { APP_ENV: production, LOG_LEVEL: info }
+workloads:
+  - { name: web, port: 8000, health: /health, replicas: 2 }
+  - { name: worker, port: 8001, health: /health, replicas: 2 }
+ingress: { enabled: true, className: nginx, host: logistics.example.com }
+autoscaling: { enabled: true, min: 2, max: 6, cpu: 70 }

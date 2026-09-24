@@ -1,0 +1,15 @@
+opencost:
+  exporter:
+    defaultClusterId: production
+    extraEnv:
+      EMIT_KSM_V1_METRICS: "false"
+  ui: { enabled: true }
+  prometheus:
+    internal: { enabled: false }
+    external: { enabled: true, url: http://prometheus.monitoring.svc:9090 }
+  customPricing:
+    enabled: true
+    provider: custom
+    costModel: { CPU: "0.031", RAM: "0.004", storage: "0.00014" }
+  metrics: { serviceMonitor: { enabled: true } }
+  securityContext: { runAsNonRoot: true, readOnlyRootFilesystem: true }

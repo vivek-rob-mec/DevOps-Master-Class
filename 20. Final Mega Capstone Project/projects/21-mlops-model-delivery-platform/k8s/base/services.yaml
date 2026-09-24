@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: fraud-risk-inference, namespace: ml-platform }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: fraud-risk-stable, namespace: ml-platform }
+spec: { selector: { app: fraud-risk-inference }, ports: [{ name: http, port: 80, targetPort: http }] }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: fraud-risk-canary, namespace: ml-platform }
+spec: { selector: { app: fraud-risk-inference }, ports: [{ name: http, port: 80, targetPort: http }] }

@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: shortener, namespace: shortener-go }
+spec:
+  groups:
+    - name: shortener.availability
+      rules:
+        - alert: PublicEndpointDown
+          expr: up{namespace="shortener-go",service="shortener-app"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations: { summary: "shortener entry workload is down", runbook_url: "docs/RUNBOOK.md" }

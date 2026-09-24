@@ -1,0 +1,24 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: "${POSTGRES_USER:-app}", POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-local-development-only}", POSTGRES_DB: "${POSTGRES_DB:-app}" }
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL","pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"], interval: 5s, timeout: 3s, retries: 30 }
+    networks: [data]
+  nats:
+    image: nats:2.11-alpine
+    command: ["--jetstream","--store_dir","/data","--http_port","8222"]
+    volumes: [nats-data:/data]
+    networks: [data]
+  app:
+    image: ${REGISTRY:-local}/17-rust-payment-risk-service-app:${IMAGE_TAG:-dev}
+    build: app
+    environment: { DATABASE_URL: "postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-local-development-only}@postgres:5432/${POSTGRES_DB:-app}", NATS_URL: "nats://nats:4222", RUST_LOG: "${RUST_LOG:-info}" }
+    ports: ["${PUBLIC_PORT:-8097}:8080"]
+    depends_on: { postgres: { condition: service_healthy }, nats: { condition: service_started } }
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+    networks: [edge,data]
+networks: { edge: {}, data: { internal: true } }
+volumes: { postgres-data: {}, nats-data: {} }

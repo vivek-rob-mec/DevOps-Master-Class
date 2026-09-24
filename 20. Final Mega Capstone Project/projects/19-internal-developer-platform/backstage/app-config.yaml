@@ -1,0 +1,30 @@
+app:
+  title: Masterclass Developer Platform
+  baseUrl: http://localhost:3000
+organization: { name: Masterclass Engineering }
+backend:
+  baseUrl: http://localhost:7007
+  listen: { port: 7007, host: 0.0.0.0 }
+  auth: { dangerouslyDisableDefaultAuthPolicy: false }
+  database:
+    client: pg
+    connection:
+      host: "${POSTGRES_HOST}"
+      port: 5432
+      user: "${POSTGRES_USER}"
+      password: "${POSTGRES_PASSWORD}"
+      database: backstage
+integrations:
+  github:
+    - host: github.com
+      token: "${GITHUB_TOKEN}"
+auth:
+  environment: development
+  providers:
+    guest: { dangerouslyAllowOutsideDevelopment: false }
+catalog:
+  rules: [{ allow: [Component, System, Domain, Group, User, Resource, API, Template, Location] }]
+  locations:
+    - { type: file, target: ../../catalog/location.yaml }
+    - { type: file, target: ../../templates/service/template.yaml }
+scaffolder: { defaultAuthor: { name: Platform Engineering, email: platform@example.invalid }, defaultCommitMessage: "chore: bootstrap from golden path" }

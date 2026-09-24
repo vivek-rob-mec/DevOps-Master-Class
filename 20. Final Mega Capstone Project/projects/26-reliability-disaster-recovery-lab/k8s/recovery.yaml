@@ -1,0 +1,33 @@
+apiVersion: velero.io/v1
+kind: Schedule
+metadata: { name: reliability-lab-daily, namespace: velero }
+spec: { schedule: "0 2 * * *", template: { includedNamespaces: [reliability-lab], snapshotVolumes: true, storageLocation: default, ttl: 720h0m0s } }
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata: { name: postgres-backups, namespace: reliability-lab }
+spec:
+  accessModes: [ReadWriteOnce]
+  resources: { requests: { storage: 20Gi } }
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata: { name: postgres-logical-backup, namespace: reliability-lab }
+spec:
+  schedule: "15 2 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: backup
+              image: postgres:16-alpine
+              command: [sh, -ec, "pg_dump --format=custom --file=/backup/orders-$(date +%s).dump $DATABASE_URL"]
+              env: [{ name: DATABASE_URL, valueFrom: { secretKeyRef: { name: database, key: url } } }]
+              volumeMounts: [{ name: backup, mountPath: /backup }]
+              resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { cpu: "1", memory: 512Mi } }
+              securityContext: { allowPrivilegeEscalation: false, capabilities: { drop: [ALL] } }
+          volumes: [{ name: backup, persistentVolumeClaim: { claimName: postgres-backups } }]

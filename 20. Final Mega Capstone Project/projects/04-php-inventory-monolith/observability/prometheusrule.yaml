@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: inventory, namespace: inventory-php }
+spec:
+  groups:
+    - name: inventory.availability
+      rules:
+        - alert: PublicEndpointDown
+          expr: up{namespace="inventory-php",service="inventory-app"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations: { summary: "inventory entry workload is down", runbook_url: "docs/RUNBOOK.md" }

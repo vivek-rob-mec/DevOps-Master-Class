@@ -1,0 +1,26 @@
+pipeline {
+  agent any
+  options { timestamps(); timeout(time: 45, unit: 'MINUTES'); disableConcurrentBuilds(abortPrevious: true) }
+  parameters {
+    string(name: 'REGISTRY', defaultValue: 'registry.example.com/team')
+    string(name: 'IMAGE_TAG', defaultValue: '')
+    choice(name: 'DEPLOY_ENV', choices: ['none','dev','prod'])
+  }
+  environment { REGISTRY_AUTH=credentials('oci-registry-credentials'); KUBE_NAMESPACE='learning-python' }
+  stages {
+    stage('Checkout'){steps{checkout scm}}
+    stage('Version'){steps{script{env.RESOLVED_TAG=params.IMAGE_TAG?.trim()?params.IMAGE_TAG.trim():sh(returnStdout:true,script:'git rev-parse --short=12 HEAD').trim()}}}
+    stage('Validate'){parallel{
+      stage('Source'){steps{sh 'bash scripts/test.sh'}}
+      stage('Compose'){steps{sh 'docker compose config --quiet'}}
+      stage('Kubernetes'){steps{sh 'kubectl kustomize k8s/overlays/dev >/tmp/rendered.yaml'}}
+      stage('Terraform'){steps{sh 'terraform -chdir=terraform fmt -check -recursive'}}
+    }}
+    stage('Build'){steps{sh 'REGISTRY=$REGISTRY IMAGE_TAG=$RESOLVED_TAG docker compose build --pull'}}
+    stage('Smoke'){steps{sh 'REGISTRY=$REGISTRY IMAGE_TAG=$RESOLVED_TAG docker compose up -d';sh 'bash scripts/smoke-test.sh http://localhost:8087'}}
+    stage('Scan'){steps{sh 'trivy fs --exit-code 1 --severity HIGH,CRITICAL --ignore-unfixed .'}}
+    stage('Publish'){when{branch 'main'}steps{sh 'echo "$REGISTRY_AUTH_PSW"|docker login "${REGISTRY%%/*}" -u "$REGISTRY_AUTH_USR" --password-stdin';sh 'REGISTRY=$REGISTRY IMAGE_TAG=$RESOLVED_TAG docker compose push'}}
+    stage('Deploy'){when{expression{params.DEPLOY_ENV!='none'}}input{message 'Deploy reviewed immutable images?'}steps{withCredentials([file(credentialsId:"kubeconfig-${params.DEPLOY_ENV}",variable:'KUBECONFIG')]){sh 'helm upgrade --install learning helm -n "$KUBE_NAMESPACE" --create-namespace --set image.tag="$RESOLVED_TAG" --atomic --timeout 10m';sh 'kubectl -n "$KUBE_NAMESPACE" rollout status deployment --timeout=5m'}}}
+  }
+  post { always { sh 'docker compose logs --no-color --tail=300 >compose.log || true';archiveArtifacts artifacts:'compose.log',allowEmptyArchive:true;sh 'docker compose down --volumes --remove-orphans || true' } }
+}

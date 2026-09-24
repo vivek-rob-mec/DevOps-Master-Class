@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata: { name: platform-engineering, description: Owners of the internal developer platform }
+spec: { type: team, profile: { displayName: Platform Engineering }, children: [] }
+---
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata: { name: platform-admin }
+spec: { profile: { displayName: Platform Admin, email: platform@example.invalid }, memberOf: [platform-engineering] }

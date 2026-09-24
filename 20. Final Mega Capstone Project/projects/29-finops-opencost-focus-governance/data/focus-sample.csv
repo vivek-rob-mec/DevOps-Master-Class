@@ -1,0 +1,3 @@
+BillingAccountId,BillingPeriodStart,ChargeCategory,ChargeDescription,ChargePeriodStart,ChargePeriodEnd,EffectiveCost,ProviderName,RegionId,ResourceId,ServiceName,Tags
+replace,2026-07-01,Usage,Compute,2026-07-01,2026-08-01,4200.00,ExampleCloud,india-central,cluster-prod,Managed Kubernetes,"owner=platform;product=shop"
+replace,2026-07-01,Usage,Object storage,2026-07-01,2026-08-01,380.00,ExampleCloud,india-central,bucket-backups,Object Storage,"owner=database;product=shared"

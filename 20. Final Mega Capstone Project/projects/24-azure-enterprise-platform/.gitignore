@@ -1,0 +1,4 @@
+.env
+*.local.bicepparam
+.azure/
+what-if.json

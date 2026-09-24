@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: payment-risk-config, namespace: payment-risk-rust }
+data:
+  APP_ENV: "kubernetes"
+  LOG_LEVEL: "info"
+  APP_URL: "http://payment-risk-app"

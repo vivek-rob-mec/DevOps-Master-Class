@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: commerce-config, namespace: commerce-python }
+data:
+  APP_ENV: "kubernetes"
+  LOG_LEVEL: "info"
+  GATEWAY_URL: "http://commerce-gateway"
+  CATALOG_URL: "http://commerce-catalog"
+  ORDERS_URL: "http://commerce-orders"
+  FRONTEND_URL: "http://commerce-frontend"

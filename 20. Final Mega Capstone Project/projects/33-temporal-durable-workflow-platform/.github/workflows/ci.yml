@@ -1,0 +1,13 @@
+name: temporal-workflow-ci
+on: { pull_request: {}, push: { branches: [main] } }
+permissions: { contents: read }
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - run: python -m unittest discover -s tests -v
+      - run: python scripts/replay.py history/fulfillment.json
+      - run: python -m py_compile workflow/*.py worker.py starter.py
+      - run: docker compose config --quiet
+      - run: kubectl kustomize k8s >/tmp/workers.yaml

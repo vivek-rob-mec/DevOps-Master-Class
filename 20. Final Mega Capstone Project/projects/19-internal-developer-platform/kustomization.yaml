@@ -1,0 +1,3 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: [platform/namespace.yaml,platform/policy.yaml,crossplane/xrd.yaml,crossplane/function.yaml,crossplane/composition.yaml,argocd/project.yaml,argocd/applicationset.yaml]

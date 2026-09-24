@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: energy-kotlin
+  labels:
+    app.kubernetes.io/part-of: energy-trading
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: energy-trading, namespace: energy-kotlin }
+automountServiceAccountToken: false

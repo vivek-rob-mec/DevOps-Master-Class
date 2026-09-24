@@ -1,0 +1,5 @@
+[
+  {"name":"checkout","monthly_cost":4200,"requests":1800000,"labels":{"owner":"payments","product":"shop","environment":"prod","cost_center":"cc-101"},"cpu_requested":24,"cpu_used":13},
+  {"name":"catalog","monthly_cost":2100,"requests":5100000,"labels":{"owner":"catalog","product":"shop","environment":"prod","cost_center":"cc-101"},"cpu_requested":32,"cpu_used":5},
+  {"name":"recommendations","monthly_cost":7800,"requests":900000,"labels":{"owner":"ml","product":"personalization","environment":"prod","cost_center":"cc-205"},"cpu_requested":64,"cpu_used":54}
+]

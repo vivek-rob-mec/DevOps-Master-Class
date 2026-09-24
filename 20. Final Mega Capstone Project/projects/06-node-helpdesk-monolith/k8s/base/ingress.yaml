@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: helpdesk
+  namespace: helpdesk-node
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 1m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "15"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: helpdesk.local.example
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: { service: { name: helpdesk-app, port: { number: 80 } } }

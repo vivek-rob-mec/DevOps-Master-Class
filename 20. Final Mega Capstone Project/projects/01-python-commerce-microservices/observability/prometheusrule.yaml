@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: commerce, namespace: commerce-python }
+spec:
+  groups:
+    - name: commerce.availability
+      rules:
+        - alert: PublicEndpointDown
+          expr: up{namespace="commerce-python",service="commerce-gateway"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations: { summary: "commerce entry workload is down", runbook_url: "docs/RUNBOOK.md" }

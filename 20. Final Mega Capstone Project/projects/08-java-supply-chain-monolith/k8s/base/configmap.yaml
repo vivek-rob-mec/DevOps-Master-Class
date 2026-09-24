@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: supplychain-config, namespace: supplychain-java }
+data:
+  APP_ENV: "kubernetes"
+  LOG_LEVEL: "info"
+  APP_URL: "http://supplychain-app"

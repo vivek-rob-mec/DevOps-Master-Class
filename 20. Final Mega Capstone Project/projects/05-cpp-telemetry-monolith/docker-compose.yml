@@ -1,0 +1,11 @@
+services:
+  app:
+    image: ${REGISTRY:-local}/05-cpp-telemetry-monolith-app:${IMAGE_TAG:-dev}
+    build: .
+    environment: { PORT: 8080, WEB_ROOT: /app/public, DATABASE_PATH: /app/data/telemetry.db }
+    ports: ["${PUBLIC_PORT:-8085}:8080"]
+    volumes: [telemetry-data:/app/data]
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: [no-new-privileges:true]
+volumes: { telemetry-data: {} }

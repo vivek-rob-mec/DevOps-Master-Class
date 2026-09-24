@@ -1,0 +1,12 @@
+driver: { kind: modern_ebpf }
+falco:
+  json_output: true
+  json_include_output_property: true
+  http_output: { enabled: true, url: http://alert-router.security-ops.svc:8080/events }
+  metrics: { enabled: true, interval: 30m }
+customRules:
+  masterclass_rules.yaml: |-
+    # Copy the reviewed rules from falco/custom-rules.yaml during the exercise.
+serviceMonitor: { create: true }
+tolerations: [{ operator: Exists }]
+resources: { requests: { cpu: 100m, memory: 256Mi }, limits: { cpu: "1", memory: 1Gi } }

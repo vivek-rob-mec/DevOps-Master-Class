@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata: { name: payment-risk-api }
+spec:
+  type: openapi
+  lifecycle: production
+  owner: platform-engineering
+  system: checkout
+  definition: |
+    openapi: 3.1.0
+    info: { title: Payment Risk API, version: 1.0.0 }
+    paths: { /health: { get: { responses: { "200": { description: Ready } } } } }

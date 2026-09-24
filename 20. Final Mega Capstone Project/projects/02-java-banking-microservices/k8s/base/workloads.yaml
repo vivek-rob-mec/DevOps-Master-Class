@@ -1,0 +1,212 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-gateway
+  namespace: banking-java
+  labels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: banking }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy: { rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  selector:
+    matchLabels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: banking }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: banking }
+    spec:
+      serviceAccountName: banking
+      automountServiceAccountToken: false
+      securityContext: { seccompProfile: { type: RuntimeDefault } }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: gateway
+          image: ghcr.io/replace-me/02-java-banking-microservices-gateway:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{ name: http, containerPort: 8080 }]
+          env: [{ name: PORT, value: "8080" }]
+          envFrom:
+            - configMapRef: { name: banking-config }
+            - secretRef: { name: banking-runtime }
+          readinessProbe: { httpGet: { path: /actuator/health, port: http }, initialDelaySeconds: 5, periodSeconds: 5, timeoutSeconds: 2, failureThreshold: 6 }
+          livenessProbe: { httpGet: { path: /actuator/health, port: http }, initialDelaySeconds: 20, periodSeconds: 10, timeoutSeconds: 2 }
+          lifecycle: { preStop: { exec: { command: ["/bin/sh", "-c", "sleep 5"] } } }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 128Mi } }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: banking-gateway
+  namespace: banking-java
+  labels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: banking }
+spec:
+  selector: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: banking }
+  ports: [{ name: http, port: 80, targetPort: http }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-accounts
+  namespace: banking-java
+  labels: { app.kubernetes.io/name: accounts, app.kubernetes.io/part-of: banking }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy: { rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  selector:
+    matchLabels: { app.kubernetes.io/name: accounts, app.kubernetes.io/part-of: banking }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: accounts, app.kubernetes.io/part-of: banking }
+    spec:
+      serviceAccountName: banking
+      automountServiceAccountToken: false
+      securityContext: { seccompProfile: { type: RuntimeDefault } }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: accounts
+          image: ghcr.io/replace-me/02-java-banking-microservices-accounts:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{ name: http, containerPort: 8081 }]
+          env: [{ name: PORT, value: "8081" }]
+          envFrom:
+            - configMapRef: { name: banking-config }
+            - secretRef: { name: banking-runtime }
+          readinessProbe: { httpGet: { path: /actuator/health, port: http }, initialDelaySeconds: 5, periodSeconds: 5, timeoutSeconds: 2, failureThreshold: 6 }
+          livenessProbe: { httpGet: { path: /actuator/health, port: http }, initialDelaySeconds: 20, periodSeconds: 10, timeoutSeconds: 2 }
+          lifecycle: { preStop: { exec: { command: ["/bin/sh", "-c", "sleep 5"] } } }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 128Mi } }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: banking-accounts
+  namespace: banking-java
+  labels: { app.kubernetes.io/name: accounts, app.kubernetes.io/part-of: banking }
+spec:
+  selector: { app.kubernetes.io/name: accounts, app.kubernetes.io/part-of: banking }
+  ports: [{ name: http, port: 80, targetPort: http }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-ledger
+  namespace: banking-java
+  labels: { app.kubernetes.io/name: ledger, app.kubernetes.io/part-of: banking }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy: { rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  selector:
+    matchLabels: { app.kubernetes.io/name: ledger, app.kubernetes.io/part-of: banking }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: ledger, app.kubernetes.io/part-of: banking }
+    spec:
+      serviceAccountName: banking
+      automountServiceAccountToken: false
+      securityContext: { seccompProfile: { type: RuntimeDefault } }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: ledger
+          image: ghcr.io/replace-me/02-java-banking-microservices-ledger:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{ name: http, containerPort: 8082 }]
+          env: [{ name: PORT, value: "8082" }]
+          envFrom:
+            - configMapRef: { name: banking-config }
+            - secretRef: { name: banking-runtime }
+          readinessProbe: { httpGet: { path: /actuator/health, port: http }, initialDelaySeconds: 5, periodSeconds: 5, timeoutSeconds: 2, failureThreshold: 6 }
+          livenessProbe: { httpGet: { path: /actuator/health, port: http }, initialDelaySeconds: 20, periodSeconds: 10, timeoutSeconds: 2 }
+          lifecycle: { preStop: { exec: { command: ["/bin/sh", "-c", "sleep 5"] } } }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 128Mi } }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: banking-ledger
+  namespace: banking-java
+  labels: { app.kubernetes.io/name: ledger, app.kubernetes.io/part-of: banking }
+spec:
+  selector: { app.kubernetes.io/name: ledger, app.kubernetes.io/part-of: banking }
+  ports: [{ name: http, port: 80, targetPort: http }]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banking-frontend
+  namespace: banking-java
+  labels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: banking }
+spec:
+  replicas: 2
+  revisionHistoryLimit: 5
+  strategy: { rollingUpdate: { maxUnavailable: 0, maxSurge: 1 } }
+  selector:
+    matchLabels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: banking }
+  template:
+    metadata:
+      labels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: banking }
+    spec:
+      serviceAccountName: banking
+      automountServiceAccountToken: false
+      securityContext: { seccompProfile: { type: RuntimeDefault } }
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: frontend
+          image: ghcr.io/replace-me/02-java-banking-microservices-frontend:0.1.0
+          imagePullPolicy: IfNotPresent
+          ports: [{ name: http, containerPort: 8080 }]
+          env: [{ name: PORT, value: "8080" }]
+          envFrom:
+            - configMapRef: { name: banking-config }
+            - secretRef: { name: banking-runtime }
+          readinessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 5, periodSeconds: 5, timeoutSeconds: 2, failureThreshold: 6 }
+          livenessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 20, periodSeconds: 10, timeoutSeconds: 2 }
+          lifecycle: { preStop: { exec: { command: ["/bin/sh", "-c", "sleep 5"] } } }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 128Mi } }]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: banking-frontend
+  namespace: banking-java
+  labels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: banking }
+spec:
+  selector: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: banking }
+  ports: [{ name: http, port: 80, targetPort: http }]

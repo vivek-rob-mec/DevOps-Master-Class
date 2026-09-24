@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata: { name: fraud-risk-inference, namespace: ml-platform }
+spec:
+  replicas: 4
+  revisionHistoryLimit: 3
+  selector: { matchLabels: { app: fraud-risk-inference } }
+  strategy:
+    canary:
+      stableService: fraud-risk-stable
+      canaryService: fraud-risk-canary
+      steps:
+        - { setWeight: 10 }
+        - { pause: { duration: 5m } }
+        - analysis: { templates: [{ templateName: inference-success-rate }], args: [{ name: service, value: fraud-risk-canary }] }
+        - { setWeight: 50 }
+        - { pause: { duration: 10m } }
+  template:
+    metadata: { labels: { app: fraud-risk-inference } }
+    spec:
+      serviceAccountName: fraud-risk-inference
+      automountServiceAccountToken: false
+      securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: api
+          image: ghcr.io/replace-me/fraud-risk-inference:replace-with-digest
+          envFrom: [{ configMapRef: { name: inference-config } }]
+          ports: [{ name: http, containerPort: 8080 }]
+          readinessProbe: { httpGet: { path: /health, port: http }, periodSeconds: 5 }
+          livenessProbe: { httpGet: { path: /health, port: http }, initialDelaySeconds: 20 }
+          resources: { requests: { cpu: 250m, memory: 512Mi }, limits: { cpu: "2", memory: 2Gi } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }

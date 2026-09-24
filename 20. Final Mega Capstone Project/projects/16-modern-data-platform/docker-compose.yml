@@ -1,0 +1,96 @@
+x-airflow-common: &airflow-common
+  build: { context: ., dockerfile: Dockerfile.airflow }
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: LocalExecutor
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-local-development-only}@postgres:5432/${POSTGRES_DB:-platform}
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__FERNET_KEY: ${AIRFLOW_FERNET_KEY:-bG9jYWwtZGV2ZWxvcG1lbnQtZmVybmV0LWtleS0wMDA=}
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_USERS: admin:admin
+    AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_PASSWORDS_FILE: /opt/airflow/config/simple_auth_manager_passwords.json
+    AIRFLOW__API_AUTH__JWT_SECRET: ${AIRFLOW_JWT_SECRET:-local-development-jwt-secret-change-me}
+    AIRFLOW__API__SECRET_KEY: ${AIRFLOW_API_SECRET_KEY:-local-development-api-secret-change-me}
+    PLATFORM_DATABASE_URL: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-local-development-only}@postgres:5432/${POSTGRES_DB:-platform}
+    KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+    DBT_PROFILES_DIR: /opt/platform/dbt
+  user: "${AIRFLOW_UID:-50000}:0"
+  volumes:
+    - ./dags:/opt/airflow/dags:ro
+    - ./platform_lib:/opt/platform/platform_lib:ro
+    - ./contracts:/opt/platform/contracts:ro
+    - ./data:/opt/platform/data
+    - ./dbt:/opt/platform/dbt:ro
+    - ./config:/opt/airflow/config:ro
+    - airflow-logs:/opt/airflow/logs
+  depends_on:
+    postgres: { condition: service_healthy }
+  networks: [control,data]
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: "${POSTGRES_USER:-platform}", POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-local-development-only}", POSTGRES_DB: "${POSTGRES_DB:-platform}" }
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL","pg_isready -U ${POSTGRES_USER:-platform} -d ${POSTGRES_DB:-platform}"], interval: 5s, timeout: 3s, retries: 30 }
+    networks: [data]
+  kafka:
+    image: apache/kafka:4.0.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck: { test: ["CMD-SHELL","/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null"], interval: 10s, timeout: 5s, retries: 30 }
+    networks: [data]
+  kafka-init:
+    image: apache/kafka:4.0.0
+    command: ["sh","-c","/opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic order-events.v1 --partitions 3 --replication-factor 1"]
+    depends_on: { kafka: { condition: service_healthy } }
+    networks: [data]
+  airflow-init:
+    <<: *airflow-common
+    command: ["bash","-c","airflow db migrate"]
+    restart: "no"
+  airflow-api:
+    <<: *airflow-common
+    command: api-server
+    ports: ["${AIRFLOW_PORT:-8095}:8080"]
+    depends_on: { postgres: { condition: service_healthy }, airflow-init: { condition: service_completed_successfully } }
+    healthcheck: { test: ["CMD","curl","--fail","http://localhost:8080/api/v2/monitor/health"], interval: 15s, timeout: 5s, retries: 20 }
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    depends_on: { postgres: { condition: service_healthy }, airflow-init: { condition: service_completed_successfully } }
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    depends_on: { postgres: { condition: service_healthy }, airflow-init: { condition: service_completed_successfully } }
+  producer:
+    profiles: [demo]
+    build: { context: ., dockerfile: Dockerfile.producer }
+    environment: { KAFKA_BOOTSTRAP_SERVERS: "${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}" }
+    depends_on: { kafka-init: { condition: service_completed_successfully } }
+    networks: [data]
+  spark-batch:
+    profiles: [batch]
+    build: { context: ., dockerfile: Dockerfile.spark }
+    volumes: [./data:/opt/platform/data]
+    read_only: true
+    tmpfs: [/tmp]
+    networks: [data]
+  dbt:
+    profiles: [transform]
+    build: { context: ., dockerfile: Dockerfile.airflow }
+    entrypoint: ["dbt"]
+    command: ["build","--project-dir","/opt/platform/dbt","--profiles-dir","/opt/platform/dbt","--target-path","/tmp/dbt-target","--log-path","/tmp/dbt-logs"]
+    environment: { PLATFORM_DATABASE_HOST: postgres, POSTGRES_USER: "${POSTGRES_USER:-platform}", POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-local-development-only}", POSTGRES_DB: "${POSTGRES_DB:-platform}" }
+    volumes: [./dbt:/opt/platform/dbt:ro]
+    depends_on: { postgres: { condition: service_healthy } }
+    networks: [data]
+networks: { control: {}, data: { internal: true } }
+volumes: { postgres-data: {}, airflow-logs: {} }

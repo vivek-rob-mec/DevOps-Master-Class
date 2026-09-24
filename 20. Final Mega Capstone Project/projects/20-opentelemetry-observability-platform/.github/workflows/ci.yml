@@ -1,0 +1,16 @@
+name: observability-ci
+on: { pull_request: {}, push: { branches: [main] }, workflow_dispatch: {} }
+permissions: { contents: read }
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: cd app && python -m unittest test_domain.py -v && python -m py_compile main.py domain.py
+      - run: docker compose config --quiet
+      - run: docker run --rm -v "$PWD/prometheus:/etc/prometheus" prom/prometheus:v3.12.0 promtool check config /etc/prometheus/prometheus.yml
+      - run: kubectl kustomize k8s/base >/tmp/rendered.yaml
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform -chdir=terraform fmt -check -recursive

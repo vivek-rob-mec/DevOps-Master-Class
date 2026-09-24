@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+.pytest_cache/
+.terraform/
+*.tfstate*
+target/
+dbt_packages/
+logs/
+data/curated/*
+!data/curated/.gitkeep

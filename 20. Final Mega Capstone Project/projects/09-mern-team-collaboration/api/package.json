@@ -1,0 +1,1 @@
+{"name":"collaboration-api","private":true,"version":"0.1.0","type":"module","scripts":{"start":"node src/server.js","test":"node --test"},"dependencies":{"express":"5.2.1","mongoose":"8.19.1","prom-client":"15.1.3"}}

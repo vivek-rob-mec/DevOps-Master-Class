@@ -1,0 +1,20 @@
+name: azure-platform-ci
+on: { pull_request: {}, push: { branches: [main] } }
+permissions: { contents: read, id-token: write }
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - run: az bicep install --version v0.45.15
+      - run: az bicep build --file infra/main.bicep
+      - run: kubectl kustomize k8s >/tmp/azure-workload.yaml
+  what-if:
+    if: github.event_name != 'pull_request'
+    environment: azure-plan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: azure/login@532459ea530d8321f2fb9bb10d1e0bcf23869a43 # v3.0.0
+        with: { client-id: "${{ secrets.AZURE_CLIENT_ID }}", tenant-id: "${{ secrets.AZURE_TENANT_ID }}", subscription-id: "${{ secrets.AZURE_SUBSCRIPTION_ID }}" }
+      - run: az deployment sub what-if --location centralindia --template-file infra/main.bicep --parameters infra/dev.bicepparam --no-pretty-print

@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sample-api
+  namespace: sample
+  annotations: { azure.workload.identity/client-id: replace-with-bicep-output }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: sample-api, namespace: sample }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: sample-api } }
+  template:
+    metadata: { labels: { app: sample-api, azure.workload.identity/use: "true" } }
+    spec:
+      serviceAccountName: sample-api
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: app
+          image: ghcr.io/replace/sample-api@sha256:replace
+          env: [{ name: KEY_VAULT_URL, value: https://replace.vault.azure.net/ }]
+          ports: [{ name: http, containerPort: 8080 }]
+          resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { cpu: 500m, memory: 256Mi } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: sample-api, namespace: sample }
+spec: { selector: { app: sample-api }, ports: [{ name: http, port: 80, targetPort: http }] }

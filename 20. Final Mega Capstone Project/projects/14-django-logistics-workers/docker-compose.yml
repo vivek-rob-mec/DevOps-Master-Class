@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment: { POSTGRES_USER: "${POSTGRES_USER:-app}", POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-local-development-only}", POSTGRES_DB: "${POSTGRES_DB:-app}" }
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL","pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"], interval: 5s, timeout: 3s, retries: 30 }
+    networks: [data]
+  redis:
+    image: redis:7.4-alpine
+    command: ["redis-server","--appendonly","yes","--requirepass","${REDIS_PASSWORD:-local-development-only}"]
+    volumes: [redis-data:/data]
+    healthcheck: { test: ["CMD","redis-cli","-a","${REDIS_PASSWORD:-local-development-only}","ping"], interval: 5s, timeout: 3s, retries: 30 }
+    networks: [data]
+  web:
+    image: ${REGISTRY:-local}/14-django-logistics-workers-web:${IMAGE_TAG:-dev}
+    build: { context: ., dockerfile: Dockerfile.web }
+    environment: &env { POSTGRES_HOST: postgres, POSTGRES_USER: "${POSTGRES_USER:-app}", POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-local-development-only}", POSTGRES_DB: "${POSTGRES_DB:-app}", REDIS_URL: "redis://:${REDIS_PASSWORD:-local-development-only}@redis:6379/0", DJANGO_SECRET_KEY: "${DJANGO_SECRET_KEY:-local-development-only}" }
+    ports: ["${PUBLIC_PORT:-8093}:8000"]
+    depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_healthy } }
+    networks: [edge,data]
+  worker:
+    image: ${REGISTRY:-local}/14-django-logistics-workers-worker:${IMAGE_TAG:-dev}
+    build: { context: ., dockerfile: Dockerfile.worker }
+    environment: *env
+    depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_healthy } }
+    networks: [data]
+networks: { edge: {}, data: { internal: true } }
+volumes: { postgres-data: {}, redis-data: {} }

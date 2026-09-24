@@ -1,0 +1,80 @@
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: commerce-gateway, namespace: commerce-python }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: commerce-gateway }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: commerce-gateway, namespace: commerce-python }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: gateway, app.kubernetes.io/part-of: commerce }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: commerce-catalog, namespace: commerce-python }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: commerce-catalog }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: commerce-catalog, namespace: commerce-python }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: catalog, app.kubernetes.io/part-of: commerce }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: commerce-orders, namespace: commerce-python }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: commerce-orders }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: commerce-orders, namespace: commerce-python }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: orders, app.kubernetes.io/part-of: commerce }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: { name: commerce-frontend, namespace: commerce-python }
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: commerce-frontend }
+  minReplicas: 2
+  maxReplicas: 6
+  behavior: { scaleDown: { stabilizationWindowSeconds: 300 } }
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 70 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: { name: commerce-frontend, namespace: commerce-python }
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels: { app.kubernetes.io/name: frontend, app.kubernetes.io/part-of: commerce }

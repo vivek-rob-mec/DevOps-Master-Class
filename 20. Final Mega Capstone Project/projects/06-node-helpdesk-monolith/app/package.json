@@ -1,0 +1,1 @@
+{"name":"node-helpdesk-monolith","private":true,"version":"0.1.0","type":"module","scripts":{"start":"node src/server.js","test":"node --test"},"dependencies":{"express":"5.2.1","pg":"8.16.3","prom-client":"15.1.3"}}

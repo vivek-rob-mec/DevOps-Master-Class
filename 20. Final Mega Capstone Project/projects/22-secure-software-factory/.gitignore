@@ -1,0 +1,6 @@
+.env
+artifacts/
+reports/
+*.pem
+*.key
+__pycache__/

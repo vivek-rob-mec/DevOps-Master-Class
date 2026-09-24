@@ -1,0 +1,16 @@
+apiVersion: core.openfeature.dev/v1beta1
+kind: FeatureFlag
+metadata: { name: checkout, namespace: progressive }
+spec:
+  flagSpec:
+    flags:
+      checkout-v2:
+        state: ENABLED
+        variants: { "on": true, "off": false }
+        defaultVariant: "off"
+        targeting: { fractional: [{ var: targetingKey }, ["on", 10], ["off", 90]] }
+---
+apiVersion: core.openfeature.dev/v1beta1
+kind: FeatureFlagSource
+metadata: { name: checkout-flags, namespace: progressive }
+spec: { sources: [{ source: checkout, provider: kubernetes }] }

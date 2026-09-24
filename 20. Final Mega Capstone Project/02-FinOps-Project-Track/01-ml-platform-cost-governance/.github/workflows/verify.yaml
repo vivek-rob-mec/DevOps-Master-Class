@@ -1,0 +1,26 @@
+name: Verify Cost Desk
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Verify contracts with the pinned Python runtime
+        run: |
+          docker run --rm -v "$PWD:/app" -w /app python:3.14-slim sh -ec '
+            pip install --no-cache-dir -r requirements.lock
+            python -m pytest tests -q
+            python app.py demo
+          '
+      - name: Build and start restricted containers
+        run: docker compose up --build --wait --wait-timeout 180
+      - name: Logs and cleanup
+        if: always()
+        run: |
+          docker compose logs
+          docker compose down

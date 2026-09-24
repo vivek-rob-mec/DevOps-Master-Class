@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata: { name: logistics-config, namespace: logistics-django }
+data:
+  APP_ENV: "kubernetes"
+  LOG_LEVEL: "info"
+  WEB_URL: "http://logistics-web"
+  WORKER_URL: "http://logistics-worker"

@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata: { name: orders-recovery, namespace: database-recovery }
+spec:
+  instances: 2
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.4-system-trixie
+  bootstrap:
+    recovery:
+      source: orders-backup
+      recoveryTarget: { targetTime: "2026-08-10 10:00:00+00" }
+  externalClusters:
+    - name: orders-backup
+      plugin: { name: barman-cloud.cloudnative-pg.io, parameters: { barmanObjectName: orders-store, serverName: orders } }
+  storage: { size: 50Gi, storageClass: replace-encrypted-rwo }

@@ -1,0 +1,10 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata: { name: orders-store, namespace: database }
+spec:
+  configuration:
+    destinationPath: s3://replace-cnpg-backups/orders
+    s3Credentials: { inheritFromIAMRole: true }
+    wal: { compression: gzip, maxParallel: 4 }
+    data: { compression: gzip, jobs: 2 }
+  retentionPolicy: 30d

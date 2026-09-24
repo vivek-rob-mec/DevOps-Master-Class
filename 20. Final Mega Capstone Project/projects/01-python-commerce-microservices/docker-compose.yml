@@ -1,0 +1,29 @@
+services:
+  catalog:
+    image: ${REGISTRY:-local}/01-python-commerce-microservices-catalog:${IMAGE_TAG:-dev}
+    build: { context: services/catalog }
+    environment: { PORT: 8001 }
+    healthcheck: { test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://localhost:8001/health')"], interval: 5s, timeout: 2s, retries: 20 }
+    networks: [backend]
+  orders:
+    image: ${REGISTRY:-local}/01-python-commerce-microservices-orders:${IMAGE_TAG:-dev}
+    build: { context: services/orders }
+    environment: { PORT: 8002, CATALOG_URL: http://catalog:8001 }
+    depends_on: { catalog: { condition: service_healthy } }
+    healthcheck: { test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://localhost:8002/health')"], interval: 5s, timeout: 2s, retries: 20 }
+    networks: [backend]
+  gateway:
+    image: ${REGISTRY:-local}/01-python-commerce-microservices-gateway:${IMAGE_TAG:-dev}
+    build: { context: services/gateway }
+    environment: { PORT: 8000, CATALOG_URL: http://catalog:8001, ORDERS_URL: http://orders:8002 }
+    depends_on: { catalog: { condition: service_healthy }, orders: { condition: service_healthy } }
+    healthcheck: { test: ["CMD","python","-c","import urllib.request;urllib.request.urlopen('http://localhost:8000/health')"], interval: 5s, timeout: 2s, retries: 20 }
+    networks: [backend,edge]
+  frontend:
+    image: ${REGISTRY:-local}/01-python-commerce-microservices-frontend:${IMAGE_TAG:-dev}
+    build: { context: frontend }
+    environment: { GATEWAY_URL: http://gateway:8000 }
+    ports: ["${PUBLIC_PORT:-8081}:8080"]
+    depends_on: { gateway: { condition: service_healthy } }
+    networks: [edge]
+networks: { edge: {}, backend: { internal: true } }

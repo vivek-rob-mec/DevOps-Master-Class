@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Service
+metadata: { name: checkout-stable, namespace: progressive }
+spec: { selector: { app: checkout }, ports: [{ name: http, port: 80, targetPort: http }] }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: checkout-canary, namespace: progressive }
+spec: { selector: { app: checkout }, ports: [{ name: http, port: 80, targetPort: http }] }

@@ -1,0 +1,29 @@
+services:
+  notification:
+    image: ${REGISTRY:-local}/03-node-booking-microservices-notification:${IMAGE_TAG:-dev}
+    build: { context: services/notification }
+    environment: { PORT: 3002 }
+    healthcheck: { test: ["CMD","node","-e","fetch('http://localhost:3002/health').then(r=>{if(!r.ok)process.exit(1)})"], interval: 5s, timeout: 2s, retries: 20 }
+    networks: [backend]
+  booking:
+    image: ${REGISTRY:-local}/03-node-booking-microservices-booking:${IMAGE_TAG:-dev}
+    build: { context: services/booking }
+    environment: { PORT: 3001, NOTIFICATION_URL: http://notification:3002 }
+    depends_on: { notification: { condition: service_healthy } }
+    healthcheck: { test: ["CMD","node","-e","fetch('http://localhost:3001/health').then(r=>{if(!r.ok)process.exit(1)})"], interval: 5s, timeout: 2s, retries: 20 }
+    networks: [backend]
+  gateway:
+    image: ${REGISTRY:-local}/03-node-booking-microservices-gateway:${IMAGE_TAG:-dev}
+    build: { context: services/gateway }
+    environment: { PORT: 3000, BOOKING_URL: http://booking:3001 }
+    depends_on: { booking: { condition: service_healthy } }
+    healthcheck: { test: ["CMD","node","-e","fetch('http://localhost:3000/health').then(r=>{if(!r.ok)process.exit(1)})"], interval: 5s, timeout: 2s, retries: 20 }
+    networks: [backend,edge]
+  frontend:
+    image: ${REGISTRY:-local}/03-node-booking-microservices-frontend:${IMAGE_TAG:-dev}
+    build: { context: frontend }
+    environment: { GATEWAY_URL: http://gateway:3000 }
+    ports: ["${PUBLIC_PORT:-8083}:3000"]
+    depends_on: { gateway: { condition: service_healthy } }
+    networks: [edge]
+networks: { edge: {}, backend: { internal: true } }

@@ -1,0 +1,1 @@
+{"properties":{"displayName":"Deny public IP addresses in application landing zones","policyType":"Custom","mode":"All","metadata":{"category":"Network"},"parameters":{},"policyRule":{"if":{"field":"type","equals":"Microsoft.Network/publicIPAddresses"},"then":{"effect":"deny"}}}}

@@ -1,0 +1,24 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata: { name: orders, namespace: database }
+spec:
+  selector: { matchLabels: { cnpg.io/cluster: orders } }
+  podMetricsEndpoints: [{ port: metrics, interval: 30s }]
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: orders-database, namespace: database }
+spec:
+  groups:
+    - name: postgresql
+      rules:
+        - alert: PostgreSQLReplicationLag
+          expr: cnpg_pg_replication_lag > 30
+          for: 5m
+          labels: { severity: warning }
+          annotations: { summary: PostgreSQL replica lag exceeds the RPO guardrail }
+        - alert: PostgreSQLLastBackupStale
+          expr: time() - cnpg_collector_last_available_backup_timestamp > 90000
+          for: 15m
+          labels: { severity: critical }
+          annotations: { summary: No usable database backup completed in the last 25 hours }

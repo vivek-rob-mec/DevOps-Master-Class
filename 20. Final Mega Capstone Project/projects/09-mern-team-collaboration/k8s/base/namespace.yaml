@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: collaboration-mern
+  labels:
+    app.kubernetes.io/part-of: collaboration
+    pod-security.kubernetes.io/enforce: restricted
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata: { name: collaboration, namespace: collaboration-mern }
+automountServiceAccountToken: false

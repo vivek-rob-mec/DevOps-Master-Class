@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: { name: environment-operator, namespace: environment-system }
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: environment-operator } }
+  template:
+    metadata: { labels: { app: environment-operator } }
+    spec:
+      serviceAccountName: environment-operator
+      securityContext: { runAsNonRoot: true, seccompProfile: { type: RuntimeDefault } }
+      containers:
+        - name: manager
+          image: ghcr.io/replace/environment-operator:v0.1.0
+          args: ["--metrics-bind-address=:8080", "--health-probe-bind-address=:8081"]
+          ports: [{ name: metrics, containerPort: 8080 }, { name: health, containerPort: 8081 }]
+          resources: { requests: { cpu: 50m, memory: 64Mi }, limits: { cpu: 500m, memory: 256Mi } }
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: { drop: [ALL] } }
+          readinessProbe: { httpGet: { path: /readyz, port: health }, initialDelaySeconds: 3 }
+          livenessProbe: { httpGet: { path: /healthz, port: health }, initialDelaySeconds: 10 }

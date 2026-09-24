@@ -1,0 +1,13 @@
+services:
+  falco:
+    image: falcosecurity/falco:0.44.1
+    privileged: true
+    pid: host
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock:ro
+      - /proc:/host/proc:ro
+      - /boot:/host/boot:ro
+      - /lib/modules:/host/lib/modules:ro
+      - /usr:/host/usr:ro
+      - ./falco/custom-rules.yaml:/etc/falco/rules.d/masterclass.yaml:ro
+    command: [falco, -o, json_output=true]

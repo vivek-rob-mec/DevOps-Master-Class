@@ -1,0 +1,15 @@
+image:
+  registry: ghcr.io
+  owner: replace-me
+  prefix: 01-python-commerce-microservices
+  tag: 0.1.0
+  pullPolicy: IfNotPresent
+existingSecret: ""
+config: { APP_ENV: production, LOG_LEVEL: info }
+workloads:
+  - { name: gateway, port: 8000, health: /health, replicas: 2 }
+  - { name: catalog, port: 8001, health: /health, replicas: 2 }
+  - { name: orders, port: 8002, health: /health, replicas: 2 }
+  - { name: frontend, port: 8080, health: /health, replicas: 2 }
+ingress: { enabled: true, className: nginx, host: commerce.example.com }
+autoscaling: { enabled: true, min: 2, max: 6, cpu: 70 }

@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: collaboration, namespace: collaboration-mern }
+spec:
+  groups:
+    - name: collaboration.availability
+      rules:
+        - alert: PublicEndpointDown
+          expr: up{namespace="collaboration-mern",service="collaboration-api"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations: { summary: "collaboration entry workload is down", runbook_url: "docs/RUNBOOK.md" }

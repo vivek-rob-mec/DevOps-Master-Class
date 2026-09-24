@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Demand Desk · Forecast planner</title>
+  <link rel="icon" href="data:,"><link rel="stylesheet" href="/assets/styles.css">
+  <script src="/assets/app.js" defer></script>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="/" aria-label="Demand Desk home"><span class="brand-icon">↗</span> Demand Desk</a><span class="workspace">OPERATIONS WORKSPACE</span><span class="lab-tag">LOCAL LEARNING LAB</span></header>
+<main>
+  <div class="page-heading"><div><p class="eyebrow">INVENTORY INTELLIGENCE / FORECASTING</p><h1>Plan ahead. Stock with confidence.</h1><p class="subtle">Turn demand signals into a reviewed replenishment plan.</p></div><button id="refresh" class="secondary">↻ Refresh data</button></div>
+  <div id="notice" role="status" aria-live="polite" hidden></div>
+  <div id="loading" class="empty">Loading published forecasts…</div>
+  <section id="empty" class="empty" hidden><h2>Your planning workspace is ready.</h2><p>Publish your first forecast to see products, demand history, and model evidence.</p><p>From the MLOps track folder, run:</p><code>.\.venv\Scripts\python.exe 01-demand-forecasting/run.py demo</code><p>Then select Refresh data.</p></section>
+  <div id="dashboard" hidden>
+    <section class="stats" aria-label="Portfolio overview">
+      <article><span class="stat-label">PRODUCTS IN BATCH</span><strong id="product-count">—</strong><span>Published product forecasts</span></article>
+      <article><span class="stat-label">NEXT 7 DAYS</span><strong id="total-demand">—</strong><span>Forecast demand · units</span></article>
+      <article><span class="stat-label">INVENTORY CAPTURED</span><strong id="inventory-count">—</strong><span>Products with saved stock levels</span></article>
+      <article><span class="stat-label">PUBLISHED METHOD</span><strong class="method" id="selected-model">—</strong><span id="batch-status">—</span></article>
+    </section>
+    <div class="planner-grid">
+      <aside class="panel products-panel"><div class="panel-heading"><h2>Products</h2><span class="pill">7-day view</span></div><label class="sr-only" for="search">Search products</label><input id="search" type="search" placeholder="Search SKU…" autocomplete="off"><div id="product-list" aria-label="Product selection"></div><p class="small subtle">Select a product to inspect its forecast and review an order suggestion.</p></aside>
+      <section class="panel forecast-panel" aria-labelledby="forecast-title"><div class="panel-heading"><div><p class="eyebrow">DEMAND OUTLOOK</p><h2 id="forecast-title">Select a product</h2></div><span class="pill" id="forecast-range"></span></div><div class="forecast-numbers"><strong id="sku-demand">—</strong><span>units expected over the next 7 days</span></div><div class="legend"><span><i class="actual"></i>Observed demand</span><span><i class="forecast"></i>Published forecast</span><span><i class="baseline"></i>Seasonal baseline</span></div><div id="chart" class="chart" aria-label="Demand chart"></div><p class="small subtle">28 observed days → 7 forecast days. Synthetic dates; batch freshness is measured from publication time.</p><details><summary>View daily forecast values</summary><div class="table-scroll"><table><thead><tr><th>Date</th><th>Forecast units</th><th>Baseline units</th></tr></thead><tbody id="daily-values"></tbody></table></div></details></section>
+      <section class="panel order-panel" aria-labelledby="order-title"><p class="eyebrow">PLANNER WORKFLOW</p><h2 id="order-title">Replenishment review</h2><p class="small subtle">Save your stock count, then record a decision.</p><form id="inventory-form"><label for="on-hand">Inventory on hand <span class="subtle">(units)</span></label><div class="input-action"><input id="on-hand" type="number" min="0" max="1000000" step="1" required><button id="save-inventory" type="submit" class="secondary">Save stock</button></div><p id="inventory-state" class="small subtle"></p></form><div class="recommendation"><span>SUGGESTED REPLENISHMENT</span><strong id="recommended">—</strong><small>ceil(7-day demand) + 2 buffer − saved stock, minimum 0</small></div><form id="review-form"><label for="reviewer">Reviewer name</label><input id="reviewer" maxlength="80" required placeholder="Your name" autocomplete="name"><label for="decision">Decision</label><select id="decision"><option value="approved">Approve suggestion</option><option value="deferred">Defer for later</option></select><label for="notes">Review notes <span class="subtle">(optional)</span></label><textarea id="notes" rows="2" maxlength="1000" placeholder="Explain your decision…"></textarea><button id="save-review" type="submit" class="primary">Save review</button></form><p class="small subtle">Advisory only: saving approval records a decision; it does not create a purchase order. Reviewer names are self-entered.</p></section>
+      <section class="panel model-panel"><div class="panel-heading"><div><p class="eyebrow">MODEL EVIDENCE</p><h2>Does complexity earn its place?</h2></div><span class="pill">Lower MAE is better</span></div><p id="model-explanation" class="small subtle"></p><div class="table-scroll"><table><thead><tr><th>Method</th><th>Validation MAE</th><th>Holdout MAE</th><th>Holdout WAPE</th></tr></thead><tbody id="model-values"></tbody></table></div><p class="small subtle">The candidate must beat or match the seasonal baseline on validation and the final holdout. These are synthetic-data results, not measured business savings.</p></section>
+      <section class="panel batch-panel"><p class="eyebrow">PIPELINE STATUS</p><h2>Recent published batches</h2><div id="batches"></div><details><summary>Trace this forecast</summary><p class="small">Published release</p><code id="published-release"></code><p class="small">Active release for next run</p><code id="active-release"></code></details></section>
+    </div>
+    <section class="panel review-panel"><div class="panel-heading"><div><p class="eyebrow">DECISION HISTORY</p><h2>Saved replenishment reviews</h2></div><span class="small subtle">Latest 30 · all products</span></div><p id="no-reviews" class="small subtle">No reviews yet. Save inventory for a product, then record your first decision.</p><div class="table-scroll"><table id="reviews-table" hidden><thead><tr><th>Product / time</th><th>Decision</th><th>Saved stock</th><th>Suggested units</th><th>Reviewer / notes</th></tr></thead><tbody id="reviews"></tbody></table></div></section>
+  </div>
+  <footer><span>Demand Desk · Synthetic demand learning project · SQLite persistence</span><a href="/docs">API explorer ↗</a></footer>
+</main>
+</body></html>

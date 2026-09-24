@@ -1,0 +1,79 @@
+# Django Logistics and Background Jobs Platform - HLD
+
+## Scope and architecture
+
+The **Web application with asynchronous workers** owns the logistics critical journey. It prioritizes correctness, secure boundaries, reversible delivery, observable outcomes, and a path from Compose to Kubernetes.
+
+```mermaid
+flowchart LR
+    Operator --> Web["Django logistics portal"]
+    Web --> PG[(PostgreSQL)]
+    Web --> Redis[(Redis broker)]
+    Redis --> Worker["Celery worker"]
+    Worker --> Carrier["Carrier adapter"]
+    Worker --> PG
+    Web --> Metrics["Health and metrics"]
+    Worker --> WorkerHealth["Worker health endpoint"]
+```
+
+| Workload | Responsibility | Port | Health |
+|---|---|---:|---|
+| `web` | Django portal, shipment API, persistence, and queue producer | 8000 | `/health` |
+| `worker` | Celery shipment processor and worker health endpoint | 8001 | `/health` |
+
+## Quality attributes
+
+| Attribute | Initial objective | HLD response |
+|---|---|---|
+| Availability | 99.9% monthly | Replicas, readiness, PDB, graceful termination |
+| Latency | p95 below 500 ms under modeled load | Bounded chain, deadlines, capacity test, degradation |
+| Durability | No acknowledged critical write silently lost | Idempotency, authoritative state, backup/restore, reconciliation |
+| Security | Least privilege and no production secret in Git | Non-root, RBAC, NetworkPolicy, runtime secret, audit |
+| Recovery | Initial RTO 60m / RPO 15m | IaC, GitOps, backup, restore order, exercise |
+| Delivery | Reversible immutable release | Scan, digest, readiness, progressive gate, rollback criteria |
+
+These objectives are hypotheses until load, failure, security, and restore evidence exists.
+
+## Critical journey
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Frontend
+    participant Entry as Public entry
+    participant Domain as Domain owner
+    participant State as Authoritative state
+    User->>UI: Begin journey
+    UI->>Entry: Validated request and identity
+    Entry->>Domain: Bounded contract and deadline
+    Domain->>State: Enforce invariant and commit
+    State-->>Domain: Durable result
+    Domain-->>Entry: Stable outcome
+    Entry-->>UI: Response and request ID
+    UI-->>User: Confirm outcome
+```
+
+## Data, security, reliability, capacity
+
+- Domain owners define identifiers, invariants, transactions, retention, deletion, backup, and reconciliation.
+- Cross-boundary writes carry stable idempotency keys; migrations use expand-migrate-contract.
+- Trust comes from verified identity and resource authorization, not network location.
+- Remote calls have a deadline, bounded safe retry, jitter, isolation, stable error, and telemetry.
+- Estimate peak requests/s, payload, service time, concurrency, storage growth, bandwidth, skew, headroom, and failure reserve.
+
+## Delivery
+
+```mermaid
+flowchart LR
+    Commit --> Test --> Scan --> Image["Immutable image"]
+    Image --> Registry --> Desired["Versioned desired state"]
+    Desired --> ArgoCD --> Rollout --> Evidence
+    Evidence --> Promote
+    Evidence --> Rollback
+```
+
+## Review checklist
+
+- Actors, journeys, constraints, scale, SLOs, and data sensitivity are measurable.
+- Every box has responsibility/owner; every arrow has protocol, identity, timeout, retry, data, and failure meaning.
+- Data authority, migration, backup, restore, security, cost, rollout, and operations are explicit.

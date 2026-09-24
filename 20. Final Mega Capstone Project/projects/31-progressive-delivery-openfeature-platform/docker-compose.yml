@@ -1,0 +1,14 @@
+services:
+  flagd:
+    image: ghcr.io/open-feature/flagd:v0.16.0
+    command: [start, --uri, file:/etc/flagd/flags.flagd.json]
+    volumes: [./flags:/etc/flagd:ro]
+    ports: ["8013:8013"]
+    read_only: true
+  checkout:
+    build: { context: ., dockerfile: app/Dockerfile }
+    environment: { FLAGS_FILE: /flags/governance.json }
+    volumes: [./flags:/flags:ro]
+    ports: ["8131:8080"]
+    read_only: true
+    tmpfs: [/tmp]

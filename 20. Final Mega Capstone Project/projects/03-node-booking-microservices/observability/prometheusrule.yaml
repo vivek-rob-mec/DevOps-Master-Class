@@ -1,0 +1,12 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata: { name: booking, namespace: booking-node }
+spec:
+  groups:
+    - name: booking.availability
+      rules:
+        - alert: PublicEndpointDown
+          expr: up{namespace="booking-node",service="booking-gateway"} == 0
+          for: 5m
+          labels: { severity: critical }
+          annotations: { summary: "booking entry workload is down", runbook_url: "docs/RUNBOOK.md" }
